@@ -52,7 +52,7 @@ run:
 
 # valgrind test
 grind:
-	valgrind $(VGPARAMS) ./$(NAME) 10 1
+	valgrind $(VGPARAMS) ./$(NAME)
 
 # cleaning unnecessary files
 clean:
