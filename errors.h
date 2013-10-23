@@ -9,6 +9,9 @@
  *
 *******************************************************************************/
 
+#ifndef IFJ_ERRORS_INCLUDED
+#define IFJ_ERRORS_INCLUDED
+
 #define ERR_LEXICAL 1 // error during lexical analysis
 #define ERR_SYNTAX 2 // error during syntax analysis
 #define ERR_UNDEF_REDEF 3 // undefined function / function redefinition
@@ -21,5 +24,7 @@
 #define ERR_OTHER_RUNTIME 13
 
 #define ERR_INTERNAL 99 // malloc error etc.
+
+#endif
 
 /*** End of file errors.h ***/
