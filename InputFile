@@ -1,0 +1,4 @@
+// radkovy komentar
+$a = $c /* blokovy
+komentar***/ /$!=d;
+// vypada to v pohode :-)

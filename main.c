@@ -13,15 +13,23 @@
 #include <stdio.h>
 
 #include "errors.h"
+#include "syntax_analyzer.h"
 
 int main (int argc, char *argv[])
 {
-    (void)argc;
-    (void)argv;
+    int code = 0;
 
-    printf("Hey guys! I'm gonna be your IFJ project! :D\n");
+    if (argc == 2)
+    {
+        printf("\nNow starting Syntax analyzer...\n");
+        code = syntax_analyzer(argv[1]);
+    }
+    else
+    {
+        code = IFJ_ERR_INTERNAL;
+    }
 
-    return EXIT_SUCCESS;
+    return code;
 }
 
 /*** End of file main.c ***/

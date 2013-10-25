@@ -10,11 +10,11 @@
 ################################################################################
 
 NAME=ifj_070
-CC=gcc
+CC=color-gcc
 CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic
 ARCHIVE_NAME=xvecer17
 
-OBJFILES=main.o
+OBJFILES=main.o syntax_analyzer.o lex_analyzer.o
 
 VGPARAMS=--tool=memcheck --leak-check=yes -v --show-reachable=yes \
 		 --track-origins=yes --trace-children=yes --show-possibly-lost=yes
@@ -26,7 +26,7 @@ VGPARAMS=--tool=memcheck --leak-check=yes -v --show-reachable=yes \
 	$(CC) $(CFLAGS) -c $<
 
 # start rule
-all: dep link clean
+all: dep link clndep
 
 # linking object files in one executable file
 link: $(NAME)
@@ -48,11 +48,11 @@ $(NAME): $(OBJFILES)
 
 #run
 run:
-	./$(NAME)
+	./$(NAME) InputFile
 
 # valgrind test
 grind:
-	valgrind $(VGPARAMS) ./$(NAME)
+	valgrind $(VGPARAMS) ./$(NAME) InputFile
 
 # cleaning unnecessary files
 clean:
