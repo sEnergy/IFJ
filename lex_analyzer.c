@@ -3,6 +3,9 @@
  * Project name:        IFJ - Team project
  * Filename:            lex_analyzer.c
  * Author:              Marcel Fiala
+ * 						Luboš Vaníček
+ * 						Matúš Turic
+ * 						Bambi
  * Encoding:            UTF-8
  *
  * Description:         Source file  of Lexical analyzer for team project
@@ -340,12 +343,29 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         return 0;
                     }
                 } break;
+			/*
+             * STATE_VARIABLE
+             */
             case '$':
-                {
-                    /** IMPLEMENT VARIABLES HERE **/
-                    *token_id = IFJ_T_VARIALBE;
-                    write_c(buffer,c);
-                    return 0;
+				{
+					c = fgetc(input);
+					if (isalpha(c) || c == '_')
+					{
+						write_c(buffer,c);
+						c = fgetc(input);
+						while (isalpha(c) || isdigit(c) || c == '_')
+						{
+							write_c(buffer,c);
+							c = fgetc(input);
+						}
+						ungetc(c, input);
+						*token_id = IFJ_T_VARIALBE;
+						return 0;
+					}
+					else
+					{
+						return IFJ_ERR_LEXICAL;
+					}
                 } break;
             case '/':
                 {
