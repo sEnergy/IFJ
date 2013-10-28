@@ -130,20 +130,24 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 break;
             case '"':
             {
+				//save all correct character except, escape $ and end of str
 				c = fgetc(input);
                 while(c > 31 && c != '\\' && c != '"' && c != '$')
                 {
                     write_c(buffer,c);
                     c = fgetc(input)
                 }
+                //check, if next char is not uncorrect
                 if (c <= 31)
                 {
 					return IFJ_ERR_LEXICAL;
                 }
                 switch (c)
                 {
+					//check corectness of variable
                     case '$':
                     {
+						//save $ and check if next char is alpha
                         write_c(buffer, c);
                         c = fgetc(input);
                         if (isalpha(c) || c == '_')
@@ -154,12 +158,17 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         {
                             return IFJ_ERR_LEXICAL;
 						}
+						//save all alpha=numeric characters
 						c = fgetc(input);
                         while(isalnum(c) || c == '_')
                         {
                             write_c(buffer,c);
                             c = fgetc(input);
                         }
+                        /*end of string - ' " '
+                         * end of variable - white character
+                         * or lexical error
+                         */
                         if (c == '"')
                         {
                             *token_id = IFJ_T_STRING;
@@ -172,7 +181,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         }
                         else
                             return IFJ_ERR_LEXICAL;
-                    } break;
+                    } break; //end of variable
+                    
+                    //escape sequence...c = '"' means starting " case again
                     case '\\':
                     {
                         c = fgetc(input);
@@ -180,12 +191,12 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         {
                             case 'n':
                             {
-                                write_c(buffer,10);
+                                write_c(buffer,'\n');
                                 c = '"';
                             } break;
                             case 't':
                             {
-                                write_c(buffer,9);
+                                write_c(buffer,'\t');
                                 c = '"';
                             } break;
                             case '"':
@@ -195,13 +206,14 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             } break;
                             case 'x':
                             {
+								//read next two characters and convert it into long
                                 char tmp_buffer[2];
                                 read = fscanf(input,"%2s",tmp_buffer))
+                                tmp_buffer[2]='\0';
                                 if (read != 2)
                                 {
 									return IF_ERR_LEXICAL;
 								}
-                                tmp_buffer[2]='\0';
                                 if (is_hexadecimal(tmp_buffer))
                                 {
                                     char* control_pointer = NULL;
@@ -233,15 +245,17 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                 write_c(buffer,c);
                                 c = '"';
                             } break;
-                        }
-                    } break;
+                        }//end of switch for escape sequence
+                    } break;//end of escape sequence
+                    
+                    //end of string
                     case '"':
                     {
                         *token_id = IFJ_T_STRING;
                         return 0;
                     } break;
-                }
-            } break;
+                } //end of {\,$,"} switch 
+            } break; //end of string FSM
             case '<':
                 {
                     c = fgetc(input);
