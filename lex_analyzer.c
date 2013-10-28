@@ -452,24 +452,25 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                     }
                     else
                     {
+                        // if different character - end cycle
                         while (isalpha(c) || isdigit(c) || (c == '_'))
                         {
-                            write_c(buffer,c);
-                            c = fgetc(input);
-                            // if different character - end cycle
+                            write_c(buffer,c);      // write char to buffer
+                            c = fgetc(input);       // get new char from input
                         }   
                         
-                        (*token_id) = IFJ_T_ID;
-                        int i = 0;  // index  
+                        (*token_id) = IFJ_T_ID;     // token = identificator
+                        int i = 0;                  // index
                         while(i < keyword_number)
                         {
                             // compare data in buffer with keywords
                             if(strcmp(buffer->data,keywords[i]) == 0 )
                             {
-                                // found match - end cycle
+                                // found match - token = keyword - end cycle
                                 (*token_id) = IFJ_T_KEYWORD;
                                 break;
                             }
+                            // increase index
                             i++;
                         }  
                         return 0;
