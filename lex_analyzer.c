@@ -14,10 +14,25 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 #include "lex_analyzer.h"
 #include "token_id.h"
 #include "errors.h"
+
+// defined number of keywords
+#define keyword_number 8
+
+// array of keywords
+const char *keywords[keyword_number] =
+{
+    "else\0",   "function\0",   "if\0",     "return\0", 
+    "while\0",  "false\0",      "null\0",   "true\0"
+};
+
+
+
 
 int write_c(BUFFER_STRUCT buffer, char c)
 {
@@ -306,7 +321,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 {
                     /** IMPLEMENT VARIABLES HERE **/
                     *token_id = IFJ_T_VARIALBE;
-                    write_c(buffer, c);
+                    write_c(buffer,c);
                     return 0;
                 } break;
             case '/':
@@ -394,8 +409,23 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                     }
                     else
                     {
-                        /** IMPLEMENT IDENTIFICATORS HERE **/
-                        *token_id = IFJ_T_ID;
+                        while (isalpha(c) || isdigit(c) || (c == '_'))
+                        {
+                            write_c(buffer,c);
+                            c = fgetc(input);
+                        }   
+                    	// got different character - end cycle   
+                        (*token_id) = IFJ_T_ID;
+                        int i = 0;  // index 
+                        while(i < keyword_number)
+                        {
+                            if(strcmp(buffer->data,keywords[i]) == 0 )
+                            {
+                                (*token_id) = IFJ_T_KEYWORD;
+                                break;
+                            }
+                            i++;
+                        }  
                         return 0;
                     }
                 } break;
