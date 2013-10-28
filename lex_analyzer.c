@@ -19,22 +19,20 @@
 #include "token_id.h"
 #include "errors.h"
 
-#define LEX_ERR -1
-
 int write_c(BUFFER_STRUCT buffer, char c)
 {
-	char* new_ptr = NULL;
-	if (buffer->position == buffer->max_length)
-	{
-		new_ptr = (char*) realloc(buffer->data,2*buffer->max_length*sizeof(char));
-		if (new_ptr == NULL)
-			return -1;
-		buffer->data = new_ptr;
-		buffer->max_length *= 2;
-	}
-	buffer->data[buffer->position++] = c;
-	buffer->data[buffer->position + 1] = '\0';
-	return 0;
+    char* new_ptr = NULL;
+    if (buffer->position == buffer->max_length)
+    {
+        new_ptr = (char*) realloc(buffer->data,2*buffer->max_length*sizeof(char));
+        if (new_ptr == NULL)
+            return -1;
+        buffer->data = new_ptr;
+        buffer->max_length *= 2;
+    }
+    buffer->data[buffer->position++] = c;
+    buffer->data[buffer->position + 1] = '\0';
+    return 0;
 }
 
 int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
@@ -46,9 +44,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
     c = fgetc(input);
     if (c == EOF)
     {
-		*token_id = IFJ_T_EOF;
-		return 0;
-	}
+        *token_id = IFJ_T_EOF;
+        return 0;
+    }
     while(1)
     {
 
@@ -108,107 +106,107 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 break;
             case '"':
             {
-				while((c = fgetc(input)) > 31 && c != '\\' && c != '"' && c != '$')
-				{
-					write_c(buffer,c);
-				}
-				if (c <= 31)
-					return LEX_ERR;
-				switch (c)
-				{
-					case '$':
-					{   
-						write_c(buffer, c);
-						c = fgetc(input);
-						if (isalpha(c) || c == '_')
-						{
-							write_c(buffer,c);								
-						}
-						else
-							return LEX_ERR;
-							
-						while(isalnum(c = fgetc(input)) || c == '_')
-							{
-								write_c(buffer,c);	
-							}                     
-						if (c == '"')
-						{
-							*token_id = IFJ_T_STRING;
-							return 0;
-						}
-						else if(isspace(c))
-						{
-							ungetc(c, input);	
-							c = '"';
-						}
-						else 
-							return LEX_ERR;
-					} break;
-					case '\\':
-					{
-						c = fgetc(input);
-						switch (c)
-						{
-							case 'n':
-							{
-								write_c(buffer,10);
-								c = '"';
-							} break;
-							case 't':
-							{
-								write_c(buffer,9);    
-								c = '"';
-							} break;
-							case '"':
-							{
-								write_c(buffer,'"');    
-								c = '"';
-							} break;
-							case 'x':
-							{
-								char tmp_buffer[2];
-								tmp_buffer[0] = fgetc(input);
-								if (tmp_buffer[0] == EOF)
-									return LEX_ERR;
-								tmp_buffer[1] = fgetc(input);
-								if (tmp_buffer[1] == EOF)
-									return LEX_ERR;
-								tmp_buffer[2]='\0';
-								if (isalnum(tmp_buffer[0]) && isalnum(tmp_buffer[1]))
-								{
-									char* control_pointer = NULL;
-									int number = strtol(tmp_buffer, &control_pointer, 16);
-									
-									if (*control_pointer != '\0')
-										return LEX_ERR;
-									write_c(buffer,number);
-								}
-								c = '"';
-							} break;
-							case '\\':
-							{
-								write_c(buffer,'\\');    
-								c = '"';
-							} break;
-							case EOF:
-							{
-								return LEX_ERR;
-							} break;
-							default:
-							{
-								write_c(buffer,'\\');
-								write_c(buffer,c);
-								c = '"';
-							} break;
-						}
-					} break;
-					case '"':
-					{
-						*token_id = IFJ_T_STRING;
-						return 0;
-					} break;
-				}
-			} break;
+                while((c = fgetc(input)) > 31 && c != '\\' && c != '"' && c != '$')
+                {
+                    write_c(buffer,c);
+                }
+                if (c <= 31)
+                    return IFJ_ERR_LEXICAL;
+                switch (c)
+                {
+                    case '$':
+                    {
+                        write_c(buffer, c);
+                        c = fgetc(input);
+                        if (isalpha(c) || c == '_')
+                        {
+                            write_c(buffer,c);
+                        }
+                        else
+                            return IFJ_ERR_LEXICAL;
+
+                        while(isalnum(c = fgetc(input)) || c == '_')
+                            {
+                                write_c(buffer,c);
+                            }
+                        if (c == '"')
+                        {
+                            *token_id = IFJ_T_STRING;
+                            return 0;
+                        }
+                        else if(isspace(c))
+                        {
+                            ungetc(c, input);
+                            c = '"';
+                        }
+                        else
+                            return IFJ_ERR_LEXICAL;
+                    } break;
+                    case '\\':
+                    {
+                        c = fgetc(input);
+                        switch (c)
+                        {
+                            case 'n':
+                            {
+                                write_c(buffer,10);
+                                c = '"';
+                            } break;
+                            case 't':
+                            {
+                                write_c(buffer,9);
+                                c = '"';
+                            } break;
+                            case '"':
+                            {
+                                write_c(buffer,'"');
+                                c = '"';
+                            } break;
+                            case 'x':
+                            {
+                                char tmp_buffer[2];
+                                tmp_buffer[0] = fgetc(input);
+                                if (tmp_buffer[0] == EOF)
+                                    return IFJ_ERR_LEXICAL;
+                                tmp_buffer[1] = fgetc(input);
+                                if (tmp_buffer[1] == EOF)
+                                    return IFJ_ERR_LEXICAL;
+                                tmp_buffer[2]='\0';
+                                if (isalnum(tmp_buffer[0]) && isalnum(tmp_buffer[1]))
+                                {
+                                    char* control_pointer = NULL;
+                                    int number = strtol(tmp_buffer, &control_pointer, 16);
+
+                                    if (*control_pointer != '\0')
+                                        return IFJ_ERR_LEXICAL;
+                                    write_c(buffer,number);
+                                }
+                                c = '"';
+                            } break;
+                            case '\\':
+                            {
+                                write_c(buffer,'\\');
+                                c = '"';
+                            } break;
+                            case EOF:
+                            {
+                                return IFJ_ERR_LEXICAL;
+                            } break;
+                            default:
+                            {
+                                write_c(buffer,'\\');
+                                write_c(buffer,c);
+                                c = '"';
+                            } break;
+                        }
+                    } break;
+                    case '"':
+                    {
+                        *token_id = IFJ_T_STRING;
+                        return 0;
+                    } break;
+                }
+            } break;
             case '<':
                 {
                     c = fgetc(input);
