@@ -34,7 +34,16 @@ int write_c(BUFFER_STRUCT buffer, char c)
     buffer->data[buffer->position + 1] = '\0';
     return 0;
 }
-
+int is_hexadecimal(char* str)
+{
+	for (int i=0; str[i] != '\0'; i++)
+	{
+		if (!(isdigit(str[i]) || (str[i] >= 'A' && str[i] <= 'F') || 
+		(str[i] >= 'a' && str[i] <= 'f')))
+			return 0;
+	}
+	return 1;
+}
 int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 {
     unsigned int token_pos = 0; // position for writing in token
@@ -172,7 +181,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                 if (tmp_buffer[1] == EOF)
                                     return IFJ_ERR_LEXICAL;
                                 tmp_buffer[2]='\0';
-                                if (isalnum(tmp_buffer[0]) && isalnum(tmp_buffer[1]))
+                                if (is_hexadecimal(tmp_buffer))
                                 {
                                     char* control_pointer = NULL;
                                     int number = strtol(tmp_buffer, &control_pointer, 16);
@@ -181,6 +190,8 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                         return IFJ_ERR_LEXICAL;
                                     write_c(buffer,number);
                                 }
+                                else
+									return IFJ_ERR_LEXICAL;
                                 c = '"';
                             } break;
                             case '\\':
