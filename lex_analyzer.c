@@ -115,12 +115,16 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 break;
             case '"':
             {
-                while((c = fgetc(input)) > 31 && c != '\\' && c != '"' && c != '$')
+				c = fgetc(input);
+                while(c > 31 && c != '\\' && c != '"' && c != '$')
                 {
                     write_c(buffer,c);
+                    c = fgetc(input)
                 }
                 if (c <= 31)
-                    return IFJ_ERR_LEXICAL;
+                {
+					return IFJ_ERR_LEXICAL;
+                }
                 switch (c)
                 {
                     case '$':
@@ -132,12 +136,15 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             write_c(buffer,c);
                         }
                         else
+                        {
                             return IFJ_ERR_LEXICAL;
-
-                        while(isalnum(c = fgetc(input)) || c == '_')
-                            {
-                                write_c(buffer,c);
-                            }
+						}
+						c = fgetc(input);
+                        while(isalnum(c) || c == '_')
+                        {
+                            write_c(buffer,c);
+                            c = fgetc(input);
+                        }
                         if (c == '"')
                         {
                             *token_id = IFJ_T_STRING;
@@ -174,24 +181,26 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             case 'x':
                             {
                                 char tmp_buffer[2];
-                                tmp_buffer[0] = fgetc(input);
-                                if (tmp_buffer[0] == EOF)
-                                    return IFJ_ERR_LEXICAL;
-                                tmp_buffer[1] = fgetc(input);
-                                if (tmp_buffer[1] == EOF)
-                                    return IFJ_ERR_LEXICAL;
+                                read = fscanf(input,"%2s",tmp_buffer))
+                                if (read != 2)
+                                {
+									return IF_ERR_LEXICAL;
+								}
                                 tmp_buffer[2]='\0';
                                 if (is_hexadecimal(tmp_buffer))
                                 {
                                     char* control_pointer = NULL;
                                     int number = strtol(tmp_buffer, &control_pointer, 16);
-
                                     if (*control_pointer != '\0')
-                                        return IFJ_ERR_LEXICAL;
+                                    {    
+										return IFJ_ERR_LEXICAL;
+                                    }
                                     write_c(buffer,number);
                                 }
                                 else
+								{
 									return IFJ_ERR_LEXICAL;
+                                }
                                 c = '"';
                             } break;
                             case '\\':
