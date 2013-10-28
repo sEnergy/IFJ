@@ -413,14 +413,17 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         {
                             write_c(buffer,c);
                             c = fgetc(input);
+                            // if different character - end cycle
                         }   
-                    	// got different character - end cycle   
+                        
                         (*token_id) = IFJ_T_ID;
-                        int i = 0;  // index 
+                        int i = 0;  // index  
                         while(i < keyword_number)
                         {
+                            // compare data in buffer with keywords
                             if(strcmp(buffer->data,keywords[i]) == 0 )
                             {
+                                // found match - end cycle
                                 (*token_id) = IFJ_T_KEYWORD;
                                 break;
                             }
