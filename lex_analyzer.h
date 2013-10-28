@@ -10,7 +10,14 @@
  *
 *******************************************************************************/
 
+typedef struct buffer_struct
+{
+	unsigned long long int max_length;
+	unsigned long long int position;
+	char* data;
+}* BUFFER_STRUCT;
+
 /* Comment this function */
-int lex_analyzer (FILE *input, int *token_id, char *token_data);
+int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer);
 
 /*** End of file lex_analyzer.h ***/

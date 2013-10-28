@@ -13,22 +13,44 @@
 #include <stdio.h>  // pak můžu smazat
 #include <stdbool.h>
 #include <ctype.h>
+#include <stdlib.h>
 
+#include "lex_analyzer.h"
 #include "token_id.h"
 #include "errors.h"
 
-int lex_analyzer (FILE *input, int *token_id, char* token_data)
+#define LEX_ERR -1
+
+int write_c(BUFFER_STRUCT buffer, char c)
+{
+	char* new_ptr = NULL;
+	if (buffer->position == buffer->max_length)
+	{
+		new_ptr = (char*) realloc(buffer->data,2*buffer->max_length*sizeof(char));
+		if (new_ptr == NULL)
+			return -1;
+		buffer->data = new_ptr;
+		buffer->max_length *= 2;
+	}
+	buffer->data[buffer->position++] = c;
+	buffer->data[buffer->position + 1] = '\0';
+	return 0;
+}
+
+int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 {
     unsigned int token_pos = 0; // position for writing in token
     (void)token_pos;
-    token_data[0] = ' '; // default token data is empty array of chars
-    token_data[1] = '\0';
 
     char c; // current character
-
+    c = fgetc(input);
+    if (c == EOF)
+    {
+		*token_id = IFJ_T_EOF;
+		return 0;
+	}
     while(1)
     {
-        c = fgetc(input);
 
         switch(c)
         {
@@ -85,12 +107,108 @@ int lex_analyzer (FILE *input, int *token_id, char* token_data)
                 return 0;
                 break;
             case '"':
-                {
-                    /** IMPLEMENT STRINGS HERE **/
-                    *token_id = IFJ_T_STRING;
-                    token_data[0] = c;
-                    return 0;
-                } break;
+            {
+				while((c = fgetc(input)) > 31 && c != '\\' && c != '"' && c != '$')
+				{
+					write_c(buffer,c);
+				}
+				if (c <= 31)
+					return LEX_ERR;
+				switch (c)
+				{
+					case '$':
+					{   
+						write_c(buffer, c);
+						c = fgetc(input);
+						if (isalpha(c) || c == '_')
+						{
+							write_c(buffer,c);								
+						}
+						else
+							return LEX_ERR;
+							
+						while(isalnum(c = fgetc(input)) || c == '_')
+							{
+								write_c(buffer,c);	
+							}                     
+						if (c == '"')
+						{
+							*token_id = IFJ_T_STRING;
+							return 0;
+						}
+						else if(isspace(c))
+						{
+							ungetc(c, input);	
+							c = '"';
+						}
+						else 
+							return LEX_ERR;
+					} break;
+					case '\\':
+					{
+						c = fgetc(input);
+						switch (c)
+						{
+							case 'n':
+							{
+								write_c(buffer,10);
+								c = '"';
+							} break;
+							case 't':
+							{
+								write_c(buffer,9);    
+								c = '"';
+							} break;
+							case '"':
+							{
+								write_c(buffer,'"');    
+								c = '"';
+							} break;
+							case 'x':
+							{
+								char tmp_buffer[2];
+								tmp_buffer[0] = fgetc(input);
+								if (tmp_buffer[0] == EOF)
+									return LEX_ERR;
+								tmp_buffer[1] = fgetc(input);
+								if (tmp_buffer[1] == EOF)
+									return LEX_ERR;
+								tmp_buffer[2]='\0';
+								if (isalnum(tmp_buffer[0]) && isalnum(tmp_buffer[1]))
+								{
+									char* control_pointer = NULL;
+									int number = strtol(tmp_buffer, &control_pointer, 16);
+									
+									if (*control_pointer != '\0')
+										return LEX_ERR;
+									write_c(buffer,number);
+								}
+								c = '"';
+							} break;
+							case '\\':
+							{
+								write_c(buffer,'\\');    
+								c = '"';
+							} break;
+							case EOF:
+							{
+								return LEX_ERR;
+							} break;
+							default:
+							{
+								write_c(buffer,'\\');
+								write_c(buffer,c);
+								c = '"';
+							} break;
+						}
+					} break;
+					case '"':
+					{
+						*token_id = IFJ_T_STRING;
+						return 0;
+					} break;
+				}
+			} break;
             case '<':
                 {
                     c = fgetc(input);
@@ -179,7 +297,7 @@ int lex_analyzer (FILE *input, int *token_id, char* token_data)
                 {
                     /** IMPLEMENT VARIABLES HERE **/
                     *token_id = IFJ_T_VARIALBE;
-                    token_data[0] = c;
+                    write_c(buffer, c);
                     return 0;
                 } break;
             case '/':
@@ -254,22 +372,21 @@ int lex_analyzer (FILE *input, int *token_id, char* token_data)
                 } break;
             default:
                 {
-                    if (c < '!' || isblank(c))
+                    if (c < '!' || isspace(c))
                     {
-                        continue; // skipping chars witch ord. value <=32
+                        c = fgetc(input);
+                        continue; // skipping chars witch (carodejnica) ord. value <=32
                     }
                     else if (isdigit(c))
                     {
                         /** IMPLEMENT INTEGERS HERE **/
                         *token_id = IFJ_T_INT;
-                        token_data[0] = c;
                         return 0;
                     }
                     else
                     {
                         /** IMPLEMENT IDENTIFICATORS HERE **/
                         *token_id = IFJ_T_ID;
-                        token_data[0] = c;
                         return 0;
                     }
                 } break;
