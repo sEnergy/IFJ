@@ -135,7 +135,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 while(c > 31 && c != '\\' && c != '"' && c != '$')
                 {
                     write_c(buffer,c);
-                    c = fgetc(input)
+                    c = fgetc(input);
                 }
                 //check, if next char is not uncorrect
                 if (c <= 31)
@@ -208,11 +208,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             {
 								//read next two characters and convert it into long
                                 char tmp_buffer[2];
-                                read = fscanf(input,"%2s",tmp_buffer))
+                                int read = fscanf(input,"%2s",tmp_buffer);
                                 tmp_buffer[2]='\0';
                                 if (read != 2)
                                 {
-									return IF_ERR_LEXICAL;
+									return IFJ_ERR_LEXICAL;
 								}
                                 if (is_hexadecimal(tmp_buffer))
                                 {
