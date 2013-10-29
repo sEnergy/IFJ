@@ -128,6 +128,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 *token_id = IFJ_T_EOF;
                 return 0;
                 break;
+            /*
+             * STATE STRING
+             */
             case '"':
             {
 				//save all correct character except, escape $ and end of str
@@ -256,6 +259,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                     } break;
                 } //end of {\,$,"} switch 
             } break; //end of string FSM
+            /*
+             * STATE OPERATORS (lower)
+             */
             case '<':
                 {
                     c = fgetc(input);
@@ -364,6 +370,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         return IFJ_ERR_LEXICAL;
                     }
                 } break;
+            /*
+             * STATE COMMENTS
+             */
             case '/':
                 {
                     c = fgetc(input);
@@ -434,6 +443,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         return 0;
                     }
                 } break;
+            /*
+             * SPACE_IGNORE, STATE INT, DOUBLE, ID, KEYWORD
+             */
             default:
                 {
                     if (c < '!' || isspace(c))
@@ -441,6 +453,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         c = fgetc(input);
                         continue; // skipping chars witch (carodejnica) ord. value <=32
                     }
+                    /*
+                     * INTEGER AND DOUBLE
+                     */
                     else if (isdigit(c))
                     {
                         /** STATES INTEGER AND DOUBLE **/
@@ -546,8 +561,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             }
                         }
                     }
-                    else
-                    {
+                    /*
+                     * STATE ID, KEYWORD
+                     */
+                    else if (isalpha(c) || (c == '_'))
+                    {   
                         // if different character - end cycle
                         while (isalpha(c) || isdigit(c) || (c == '_'))
                         {
@@ -570,6 +588,10 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             i++;
                         }  
                         return 0;
+                    }
+                    else
+                    {
+                        return IFJ_ERR_LEXICAL;
                     }
                 } break;
         } // end of "START" switch
