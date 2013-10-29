@@ -6,6 +6,7 @@
  *                      Luboš Vaníček
  *                      Matúš Turic
  *                      Bambi
+ *                      Attila Večerek
  * Encoding:            UTF-8
  *
  * Description:         Source file  of Lexical analyzer for team project
@@ -24,17 +25,13 @@
 #include "token_id.h"
 #include "errors.h"
 
-// defined number of keywords
-#define keyword_number 8
 
 // array of keywords
-const char *keywords[keyword_number] =
+const char *keywords[KEYWORD_NUMBER] =
 {
     "else\0",   "function\0",   "if\0",     "return\0", 
     "while\0",  "false\0",      "null\0",   "true\0"
 };
-
-
 
 
 int write_c(BUFFER_STRUCT buffer, char c)
@@ -446,9 +443,108 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                     }
                     else if (isdigit(c))
                     {
-                        /** IMPLEMENT INTEGERS HERE **/
-                        *token_id = IFJ_T_INT;
-                        return 0;
+                        /** STATES INTEGER AND DOUBLE **/
+                        int state = S_INT;  //because of multiple states heading into the same state
+                        while (true)
+                        {
+                            switch(state)
+                            {
+                                case S_INT:     //first state
+                                {
+                                    while (isdigit(c))
+                                    {
+                                        write_c(buffer,c);
+                                        c = fgetc(input);
+                                    }
+                                    /* heading to double section */
+                                    if (c == '.')
+                                    {
+                                        write_c(buffer,c);
+                                        c = fgetc(input);
+                                        state = S_FDBL; //State First (Digit) Double
+                                    }
+                                    else if (c == 'e' || c == 'E')
+                                    {
+                                        write_c(buffer,c);
+                                        c = fgetc(input);
+                                        state = S_E_EXP; //Beginning of exponent
+                                    }
+                                    /*****************************/
+                                    else        //Stays Integer
+                                    {
+                                        *token_id = IFJ_T_INT;
+                                        ungetc(c,input);
+                                        return 0;
+                                    }
+                                }
+                                case S_FDBL:    //awaiting number, nothing else
+                                {
+                                    if (isdigit(c))
+                                    {
+                                        while (isdigit(c))
+                                        {
+                                            write_c(buffer,c);
+                                            c = fgetc(input);
+                                        }
+                                        if (c == 'e' || c == 'E')   //Beginning of exponent -> S_E_EXP
+                                        {
+                                            write_c(buffer,c);
+                                            c = fgetc(input);
+                                            state = S_E_EXP;
+                                        }
+                                        else    //no exponent, return DOUBLE
+                                        {
+                                            *token_id = IFJ_T_INT;
+                                            ungetc(c,input);
+                                            return 0;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return IFJ_ERR_LEXICAL;
+                                    }
+                                }
+                                case S_E_EXP:   //awaiting digit or signs '+'/'-'
+                                {
+                                    if (isdigit(c))     //Exponent's first digit -> S_EXP
+                                    {
+                                        write_c(buffer,c);
+                                        c = fgetc(input);
+                                        state = S_EXP;
+                                    }
+                                    else if (c == '+' || c == '-')
+                                    {
+                                        write_c(buffer,c);
+                                        c = fgetc(input);
+                                        if (isdigit(c)) //Exponent's first digit -> S_EXP
+                                        {
+                                            write_c(buffer,c);
+                                            c = fgetc(input);
+                                            state = S_EXP;
+                                        }
+                                        else            //no digit -> return LEX error
+                                        {
+                                            return IFJ_ERR_LEXICAL;
+                                        }
+                                    }
+                                    else                //no digit, '+' or '-' -> return LEX error
+                                    {
+                                        return IFJ_ERR_LEXICAL;
+                                    }
+                                }
+                                case S_EXP:     //awaiting digits and return Double
+                                {
+                                    while (isdigit(c))
+                                    {
+                                        write_c(buffer,c);
+                                        c = fgetc(input);
+                                    }
+                                    *token_id = IFJ_T_DOUBLE;
+                                    ungetc(c,input);
+                                    return 0;
+                                }
+                            }
+                        }
                     }
                     else
                     {
@@ -461,7 +557,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         
                         (*token_id) = IFJ_T_ID;     // token = identificator
                         int i = 0;                  // index
-                        while(i < keyword_number)
+                        while(i < KEYWORD_NUMBER)
                         {
                             // compare data in buffer with keywords
                             if(strcmp(buffer->data,keywords[i]) == 0 )
