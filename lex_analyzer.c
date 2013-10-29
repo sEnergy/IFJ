@@ -208,7 +208,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             {
 								//read next two characters and convert it into long
                                 char tmp_buffer[2];
-                                int read = fscanf(input,"%2s",tmp_buffer);
+                                int read = fscanf(input,"%c%c",&(tmp_buffer[0]),&(tmp_buffer[1]));
                                 tmp_buffer[2]='\0';
                                 if (read != 2)
                                 {
