@@ -494,7 +494,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                         }
                                         else    //no exponent, return DOUBLE
                                         {
-                                            *token_id = IFJ_T_INT;
+                                            *token_id = IFJ_T_DOUBLE;
                                             ungetc(c,input);
                                             return 0;
                                         }
