@@ -16,6 +16,7 @@ enum token_identificators
 {
     // operators & "special" characters
     IFJ_T_CONC = 1, // '.'
+    IFJ_T_SEP, // ','
     IFJ_T_PLUS, // '+'
     IFJ_T_MIN, // '-'
     IFJ_T_MUL, // '*'

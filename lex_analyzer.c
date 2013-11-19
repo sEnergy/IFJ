@@ -80,6 +80,10 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 *token_id = IFJ_T_CONC;
                 return 0;
                 break;
+            case ',':
+                *token_id = IFJ_T_SEP;
+                return 0;
+                break;
             case '+':
                 *token_id = IFJ_T_PLUS;
                 return 0;
