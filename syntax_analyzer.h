@@ -10,9 +10,14 @@
  *
 *******************************************************************************/
 
+#ifndef IFJ_SYNTAX_INCLUDED
+#define IFJ_SYNTAX_INCLUDED
+
 #define IFJ_SYNTAX_DEF_BUFF_SIZE 20
 
 // Comment when finished
 int syntax_analyzer (char* input_filename);
+
+#endif
 
 /*** End of file syntax_analyzer.h ***/

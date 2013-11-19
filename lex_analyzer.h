@@ -3,22 +3,24 @@
  * Project name:        IFJ - Team project
  * Filename:            lex_analyzer.h
  * Author:              Marcel Fiala
- *						Attila Večerek
+ *                      Attila Večerek
  * Encoding:            UTF-8
  *
  * Description:         Header file  of Lexical analyzer for team project
  *                      of IFJ course.
  *
 *******************************************************************************/
+#ifndef IFJ_LEX_INCLUDED
+#define IFJ_LEX_INCLUDED
 
 // defined number of keywords
 #define KEYWORD_NUMBER 8
 
 typedef struct buffer_struct
 {
-	unsigned long long int max_length;
-	unsigned long long int position;
-	char* data;
+    unsigned long long int max_length;
+    unsigned long long int position;
+    char* data;
 }* BUFFER_STRUCT;
 
 /* Comment this function */
@@ -32,5 +34,7 @@ enum state
     S_E_EXP, // 'e' or 'E' part of exponent
     S_EXP, // Exponent's number(s)
 };
+
+#endif
 
 /*** End of file lex_analyzer.h ***/
