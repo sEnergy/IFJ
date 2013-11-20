@@ -2,7 +2,8 @@
  *
  * Project name:        IFJ - Team project
  * Filename:            token_id.h
- * Author:              Marcel Fiala
+ * Authors:             Marcel Fiala
+ *                      Attila Večerek
  * Encoding:            UTF-8
  *
  * Description:         Token identificators
