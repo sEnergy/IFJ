@@ -3,6 +3,7 @@
  * Project name:        IFJ - Team project
  * Filename:            ial.c
  * Author:              Marcel Fiala
+ *                      Luboš Vaníček
  *                      Ivan Straka
  * Encoding:            UTF-8
  *
@@ -14,6 +15,7 @@
 #include <string.h>
 
 #include "errors.h"
+#include "ial.h"
 
 /*
  * Examines substring for repeating patterns and creates table accordingly.
@@ -56,7 +58,7 @@ int* build_table (char* substring)
  * Searches for substring. If substring is found, its index within string is
  * stored in variable found. In any other case, found is set to -1.
  */
-int search_substring(char* substring, char* string, int *found)
+int search_substring(char* substring, char* string, int* found)
 {
     int* table = build_table(substring); /* creation of table - look above */
 
@@ -99,5 +101,199 @@ int search_substring(char* substring, char* string, int *found)
     *found = -1; /* no match found */
     return EXIT_SUCCESS;
 }
+
+/*
+ * Creates an index into the hashtable.
+ */
+unsigned int hash_function(const char *string) 
+{
+    unsigned int result = 0;
+    while (*string)
+    {
+        result = 101 * result + *string++;    
+    }
+    return result % SIZE_OF_HASHTABLE;
+}
+
+/*
+ * Creates an empty hashtable and returns a pointer to it.
+ * If the allocation fails, it returns NULL instead.
+ */
+hashtable_item** hashtable_init (void)
+{
+    hashtable_item** returned_pointer;
+    /* allocation for pointer to number(size_of_hashtable) pointers */
+    returned_pointer = (hashtable_item **) malloc (SIZE_OF_HASHTABLE * sizeof(hashtable_item*));
+  
+    if (returned_pointer == NULL)
+    {
+        return NULL;
+    }
+    
+    for (unsigned int i = 0; i < SIZE_OF_HASHTABLE; ++i)
+    {
+        returned_pointer[i] = NULL;
+    }
+  
+    return returned_pointer;
+}
+
+/*
+ * Frees the whole table. 
+ */ 
+void hashtable_free (hashtable_item** hashtable)
+{
+    clear_hashtable (hashtable);
+    free(hashtable);
+}
+
+/*
+ * Inserts an item into the table, if the table already contains the item 
+ * with the same string, this function changes the value and/or type.
+ * If an error occures, function returns non-zero.
+ */
+int insert_item_hashtable (hashtable_item** hashtable, char* string, int type, char* value)
+{ 
+    hashtable_item* searched_item = search_hashtable (hashtable, string);
+    /* Haven't found, have to insert */
+    if (searched_item == NULL)
+    {
+        /* 
+         * @collision_item - the item, that is already in the table on 
+         * the same @index as the @searched item
+         */
+        searched_item = create_item_hashtable (string, type, value);
+        
+        /* Failed allocation*/
+        if (searched_item == NULL)
+        {
+            return 1;
+        }
+        unsigned int index = hash_function (string);
+        hashtable_item* collision_item = hashtable[index];
+        searched_item->next = collision_item;
+        hashtable[index] = searched_item;
+    }
+    /* Found - actualize data */
+    else
+    {
+        searched_item->type = type;
+        searched_item->value = value;
+    }
+    return 0;
+}
+
+/*
+ * Creates a new item and returns a pointer to it.
+ * When problem with allocation happens it returns NULL.
+ */
+hashtable_item* create_item_hashtable (char* string, int type, char* value)
+{
+    /* Allocation */
+    hashtable_item* pointer_to_item = (hashtable_item*) malloc (sizeof(hashtable_item));
+    
+    if (pointer_to_item == NULL)
+    {
+        return NULL;
+    }
+    
+    /* Adding data */
+    pointer_to_item->string = string;
+    pointer_to_item->type = type;
+    pointer_to_item->value = value;
+    pointer_to_item->next = NULL;
+    
+    return pointer_to_item;
+}
+
+/*
+ * Searches for an item in hashtable, if the item is found it returns
+ * pointer to the item, otherwise it returns NULL.
+ */
+hashtable_item* search_hashtable (hashtable_item** hashtable, char* string)
+{
+    /* using the hash function to get an index the to hashtable */
+    unsigned int index = hash_function (string);
+    
+    hashtable_item* searched_item = hashtable[index];
+    int found = false;
+    
+    while (searched_item != NULL)
+    {
+        if (!strcmp(hashtable[index]->string, string))
+        {
+            found = true;
+            break; 
+        }
+        else
+        {
+            searched_item = searched_item->next;
+        }
+    }
+    
+    if (found)
+    {
+        return searched_item;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+/*
+ * Cleares the whole table, it will be the same as after initialization
+ */
+void clear_hashtable (hashtable_item** hashtable)
+{
+    hashtable_item* item;
+    for (unsigned int i = 0; i < SIZE_OF_HASHTABLE; ++i)
+    {
+        while ((item = hashtable[i]) != NULL)
+        {
+            hashtable[i] = item->next;
+            free(item);
+        }
+    }
+}
+
+/*
+* Copies a hashtable and returns pointer to the created one.
+* If an error happens, it returns NULL instead.
+* The items in copied hashtable are in reversed order (better effectivity),
+* it doesn't chance its purpose.
+*/ 
+hashtable_item** copy_hashtable (hashtable_item** hashtable)
+{
+    hashtable_item* item;
+    hashtable_item* created_item;   
+    hashtable_item** created_hashtable = hashtable_init();
+    
+    /* Allocation error */
+    if (created_hashtable == NULL)
+    {
+        return NULL;
+    }
+    for (unsigned int i = 0; i < SIZE_OF_HASHTABLE; ++i)
+    {
+        while ((item = hashtable[i]) != NULL)
+        {
+            created_item = create_item_hashtable (item->string, item->type, item->value);
+            
+            /* Allocation error */
+            if (created_item == NULL)
+            {
+                hashtable_free(created_hashtable);
+                return NULL;
+            }
+            /* Adding new items as first ones -> reversed order */
+            created_item->next = created_hashtable[i];
+            created_hashtable[i] = created_item;          
+            hashtable[i] = item->next;
+        }
+    }
+    return created_hashtable;
+}
+
 
 /*** End of file ial.c ***/

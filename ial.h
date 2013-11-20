@@ -13,6 +13,37 @@
 #ifndef IFJ_IAL_INCLUDED
 #define IFJ_IAL_INCLUDED
 
+/*
+ * the bigger is the size, the less collisions we will possibly have
+ */
+#define SIZE_OF_HASHTABLE 1000
+
+#define true 1
+#define false 0
+
+/*
+ * Deffinitions of used structures
+ */ 
+
+typedef struct htable_item 
+{
+	int type;
+	struct htable_item* next;
+	char* value;
+	char* string;
+} hashtable_item;
+
+/*
+ * Function prototypes
+ */
+hashtable_item** hashtable_init (void);
+int insert_item_hashtable (hashtable_item** hashtable, char* string, int type, char* value);
+hashtable_item* create_item_hashtable (char* string, int type, char* value);
+hashtable_item* search_hashtable (hashtable_item** hashtable, char* string);
+void hashtable_free (hashtable_item** hashtable);
+hashtable_item* search_hashtable (hashtable_item** hashtable, char* string);
+void clear_hashtable (hashtable_item** hashtable);
+
 int* build_table (char* substring);
 int search_substring(char* substring, char* string, int *found);
 

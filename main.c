@@ -51,8 +51,21 @@ int main (int argc, char *argv[])
     if (found>-1) printf(" (position: %d)\n", found);
     printf("**************************************************\n\n");
 
-    return code;
-
+    /*
+     * Hashtable test
+     */
+     
+    printf("\n**************************************************\nNow testing Hashtable\n");
+    printf("**************************************************\n");
+	hashtable_item** hashtable = hashtable_init();
+	if (hashtable == NULL)
+	{
+		printf("Allocation Error.\n");
+	}
+	hashtable_free (hashtable);
+	printf("**************************************************\n\n");
+	
+	return code;
 }
 
 /*** End of file main.c ***/
