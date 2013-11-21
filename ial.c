@@ -105,20 +105,21 @@ int search_substring(char* substring, char* string, int* found)
 /*
  * Creates an index into the hashtable.
  */
+ 
 unsigned int hash_function(const char *string) 
 {
     unsigned int result = 0;
     while (*string)
     {
-        result = 101 * result + *string++;    
+        result = 31 * result + *string++;    
     }
-    return result % SIZE_OF_HASHTABLE;
+    return (result % SIZE_OF_HASHTABLE);
 }
 
 /*
  * Creates an empty hashtable and returns a pointer to it.
  * If the allocation fails, it returns NULL instead.
- */
+*/
 hashtable_item** hashtable_init (void)
 {
     hashtable_item** returned_pointer;
@@ -276,7 +277,8 @@ hashtable_item** copy_hashtable (hashtable_item** hashtable)
     }
     for (unsigned int i = 0; i < SIZE_OF_HASHTABLE; ++i)
     {
-        while ((item = hashtable[i]) != NULL)
+        item = hashtable[i];
+        while (item != NULL)
         {
             created_item = create_item_hashtable (item->string, item->type, item->value);
             
@@ -289,7 +291,7 @@ hashtable_item** copy_hashtable (hashtable_item** hashtable)
             /* Adding new items as first ones -> reversed order */
             created_item->next = created_hashtable[i];
             created_hashtable[i] = created_item;          
-            hashtable[i] = item->next;
+            item = item->next;
         }
     }
     return created_hashtable;

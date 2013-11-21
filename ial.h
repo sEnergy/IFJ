@@ -43,6 +43,7 @@ hashtable_item* search_hashtable (hashtable_item** hashtable, char* string);
 void hashtable_free (hashtable_item** hashtable);
 hashtable_item* search_hashtable (hashtable_item** hashtable, char* string);
 void clear_hashtable (hashtable_item** hashtable);
+hashtable_item** copy_hashtable (hashtable_item** hashtable);
 
 int* build_table (char* substring);
 int search_substring(char* substring, char* string, int *found);
