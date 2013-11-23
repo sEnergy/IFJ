@@ -26,11 +26,11 @@ enum token_identificators
     IFJ_T_LB, // '('
     IFJ_T_RB,  // ')'
     IFJ_T_LSB, // '['
-    IFJ_T_RSB, // ']' 10
+    IFJ_T_RSB, // ']' 11
     IFJ_T_LCB, // '{'
     IFJ_T_RCB, // '}'
 
-    IFJ_T_KEYWORD,
+    IFJ_T_KEYWORD, // 14
     IFJ_T_ID,
     IFJ_T_VARIALBE,
 
@@ -39,8 +39,8 @@ enum token_identificators
     IFJ_T_STRING,
 
     // assing & comparison
-    IFJ_T_ASSIGN, // '='
-    IFJ_T_LESS, // '<'   20
+    IFJ_T_ASSIGN, // '=' 20
+    IFJ_T_LESS, // '<'
     IFJ_T_GREATER, // '>'
     IFJ_T_LESS_EQUAL, // '<='
     IFJ_T_GREATER_EQUAL, // '>='

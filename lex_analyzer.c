@@ -29,7 +29,7 @@
 // array of keywords
 const char *keywords[KEYWORD_NUMBER] =
 {
-    "else\0",   "function\0",   "if\0",     "return\0", 
+    "else\0",   "function\0",   "if\0",     "return\0",
     "while\0",  "false\0",      "null\0",   "true\0"
 };
 
@@ -49,16 +49,18 @@ int write_c(BUFFER_STRUCT buffer, char c)
     buffer->data[buffer->position + 1] = '\0';
     return 0;
 }
+
 int is_hexadecimal(char* str)
 {
-	for (int i=0; str[i] != '\0'; i++)
-	{
-		if (!(isdigit(str[i]) || (str[i] >= 'A' && str[i] <= 'F') || 
-		(str[i] >= 'a' && str[i] <= 'f')))
-			return 0;
-	}
-	return 1;
+    for (int i=0; str[i] != '\0'; i++)
+    {
+        if (!(isdigit(str[i]) || (str[i] >= 'A' && str[i] <= 'F') ||
+        (str[i] >= 'a' && str[i] <= 'f')))
+            return 0;
+    }
+    return 1;
 }
+
 int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 {
     unsigned int token_pos = 0; // position for writing in token
@@ -73,7 +75,6 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
     }
     while(1)
     {
-
         switch(c)
         {
             case '.':
@@ -137,8 +138,8 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
              */
             case '"':
             {
-				//save all correct character except, escape $ and end of str
-				c = fgetc(input);
+                //save all correct character except, escape $ and end of str
+                c = fgetc(input);
                 while(c > 31 && c != '\\' && c != '"' && c != '$')
                 {
                     write_c(buffer,c);
@@ -147,14 +148,14 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 //check, if next char is not uncorrect
                 if (c <= 31)
                 {
-					return IFJ_ERR_LEXICAL;
+                    return IFJ_ERR_LEXICAL;
                 }
                 switch (c)
                 {
-					//check corectness of variable
+                    //check corectness of variable
                     case '$':
                     {
-						//save $ and check if next char is alpha
+                        //save $ and check if next char is alpha
                         write_c(buffer, c);
                         c = fgetc(input);
                         if (isalpha(c) || c == '_')
@@ -164,9 +165,9 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         else
                         {
                             return IFJ_ERR_LEXICAL;
-						}
-						//save all alpha=numeric characters
-						c = fgetc(input);
+                        }
+                        //save all alpha=numeric characters
+                        c = fgetc(input);
                         while(isalnum(c) || c == '_')
                         {
                             write_c(buffer,c);
@@ -189,7 +190,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         else
                             return IFJ_ERR_LEXICAL;
                     } break; //end of variable
-                    
+
                     //escape sequence...c = '"' means starting " case again
                     case '\\':
                     {
@@ -213,27 +214,27 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             } break;
                             case 'x':
                             {
-								//read next two characters and convert it into long
+                                //read next two characters and convert it into long
                                 char tmp_buffer[2];
                                 int read = fscanf(input,"%c%c",&(tmp_buffer[0]),&(tmp_buffer[1]));
                                 tmp_buffer[2]='\0';
                                 if (read != 2)
                                 {
-									return IFJ_ERR_LEXICAL;
-								}
+                                    return IFJ_ERR_LEXICAL;
+                                }
                                 if (is_hexadecimal(tmp_buffer))
                                 {
                                     char* control_pointer = NULL;
                                     int number = strtol(tmp_buffer, &control_pointer, 16);
                                     if (*control_pointer != '\0')
-                                    {    
-										return IFJ_ERR_LEXICAL;
+                                    {
+                                        return IFJ_ERR_LEXICAL;
                                     }
                                     write_c(buffer,number);
                                 }
                                 else
-								{
-									return IFJ_ERR_LEXICAL;
+                                {
+                                    return IFJ_ERR_LEXICAL;
                                 }
                                 c = '"';
                             } break;
@@ -254,14 +255,14 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             } break;
                         }//end of switch for escape sequence
                     } break;//end of escape sequence
-                    
+
                     //end of string
                     case '"':
                     {
                         *token_id = IFJ_T_STRING;
                         return 0;
                     } break;
-                } //end of {\,$,"} switch 
+                } //end of {\,$,"} switch
             } break; //end of string FSM
             /*
              * STATE OPERATORS (lower)
@@ -355,12 +356,12 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
              */
             case '$':
                 {
-					c = fgetc(input);
-					if (isalpha(c) || c == '_')
-					{
-						write_c(buffer,c);
-						c = fgetc(input);
-						while (isalpha(c) || isdigit(c) || c == '_')
+                    c = fgetc(input);
+                    if (isalpha(c) || c == '_')
+                    {
+                        write_c(buffer,c);
+                        c = fgetc(input);
+                        while (isalpha(c) || isdigit(c) || c == '_')
                         {
                             write_c(buffer,c);
                             c = fgetc(input);
@@ -380,7 +381,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
             case '/':
                 {
                     c = fgetc(input);
-    
+
                     if (c == '/') // line comment
                     {
                         while (1) // only EOF or newline end the cycle
@@ -432,6 +433,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                          */
                         if (end)
                         {
+                            c = fgetc(input);
                             continue;
                         }
                         else
@@ -569,14 +571,15 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                      * STATE ID, KEYWORD
                      */
                     else if (isalpha(c) || (c == '_'))
-                    {   
+                    {
                         // if different character - end cycle
                         while (isalpha(c) || isdigit(c) || (c == '_'))
                         {
                             write_c(buffer,c);      // write char to buffer
                             c = fgetc(input);       // get new char from input
-                        }   
-                        
+                        }
+                        ungetc(c,input);
+
                         (*token_id) = IFJ_T_ID;     // token = identificator
                         int i = 0;                  // index
                         while(i < KEYWORD_NUMBER)
@@ -590,7 +593,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             }
                             // increase index
                             i++;
-                        }  
+                        }
                         return 0;
                     }
                     else

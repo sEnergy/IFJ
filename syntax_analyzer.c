@@ -28,11 +28,27 @@ int buffer_init(BUFFER_STRUCT buffer)
     }
     else
     {
-        buffer->data[1] = '\0';
+        for (int i = 0; i < IFJ_SYNTAX_DEF_BUFF_SIZE; ++i)
+        {
+            buffer->data[i] = '\0';
+        }
+
         buffer->max_length = IFJ_SYNTAX_DEF_BUFF_SIZE;
         buffer->position = 0;
     }
     return 0;
+}
+
+void buffer_clear (BUFFER_STRUCT buffer)
+{
+    for (unsigned int i = 0; i < buffer->max_length; ++i)
+    {
+        buffer->data[i] = '\0';
+    }
+
+    buffer->position = 0;
+
+    return;
 }
 
 int check_open_tag (FILE* input)
@@ -66,6 +82,7 @@ int syntax_analyzer (char* input_filename)
 {
     int code = 0;
 
+    // buffer fot token content
     BUFFER_STRUCT token_data = NULL;
     if ((token_data = (BUFFER_STRUCT) malloc(sizeof(struct buffer_struct))) == NULL)
     {
@@ -82,6 +99,7 @@ int syntax_analyzer (char* input_filename)
 
     int token_id = -1;
 
+    // source file to intepret
     FILE* input = fopen(input_filename, "r");
     if (input == NULL)
     {
@@ -90,6 +108,7 @@ int syntax_analyzer (char* input_filename)
         return IFJ_ERR_INTERNAL;
     }
 
+    // testing the open tag "<?php "
     if ((code = check_open_tag (input)) != 0)
     {
         fclose(input);
@@ -99,18 +118,15 @@ int syntax_analyzer (char* input_filename)
         return code;
     }
 
-    int token_number = 1;
+    int sa_state = IFJ_NTERM_BODY;
 
     while ((code = lex_analyzer(input, &token_id, token_data)) == 0)
     {
-         printf("Token number: %i\nToken ID: %i\nToken data: %s\n\n", token_number++,
-        token_id, token_data->data);
 
-        (void)token_number;
-        token_data->data[0] = '\0';
-        token_data->position = 0;
 
-        if (token_id == IFJ_T_EOF) break;
+        printf("Token ID: %i\nToken data: %s\n\n", token_id, token_data->data);
+
+        buffer_clear(token_data);
     }
 
     fclose(input);
