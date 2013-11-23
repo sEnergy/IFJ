@@ -298,4 +298,87 @@ hashtable_item** copy_hashtable (hashtable_item** hashtable)
 }
 
 
+/**********************************************************************
+*                            MERGE SORT                               *
+***********************************************************************/
+
+// merge sort   - divide and conquer algorithm
+//              - sorting chars in string (ordinal value - lowest to highest)
+// string_array - string to sort
+// output       - temporary output array
+// first        - starting index
+// last         - ending index
+// output overwrites string_array
+
+void merge_sort(char string_array[], char output[], int first, int last)
+{
+    if(first == last) return;
+    int middle = (first + last) / 2;
+    merge_sort(string_array, output, first, middle);
+    merge_sort(string_array, output, middle + 1, last);
+    merge(string_array, output, first, last);
+
+    for(int i = first; i<=last;i++)
+    {
+        string_array[i]=output[i];
+    }
+}
+
+// merge        - merging divided lists
+//              - lists will be sorted
+// string_array - string to sort
+// output       - temporary output array
+// first        - starting index
+// last         - ending index
+
+void merge(char string_array[], char output[], int first, int last)
+{
+    int middle = (first + last) / 2;
+    int first_index = first;
+    int last_index = middle + 1;
+    int out_index = first;
+
+    while(first_index <= middle && last_index <= last)
+    {
+        if(string_array[first_index] >= string_array[last_index])
+        {
+            output[out_index] = string_array[last_index++];
+        }
+        else
+        {
+            output[out_index] = string_array[first_index++];
+        }
+        out_index++;
+    }
+
+    while(last_index <= last)
+    {
+        output[out_index] = string_array[last_index++];
+        out_index++;
+    }
+
+    while(first_index <= middle)
+    {
+        output[out_index] = string_array[first_index++];
+        out_index++;
+    }
+}
+
+// sort_string  - main function for merge sort
+// array        - string to sort
+// automatically allocs and frees space for temporary output array
+// output will be in arrray
+
+void sort_string(char array[])
+{
+    int length = strlen(array);
+    if(length == 0) return;
+    
+    char *temp = NULL;
+    if((temp = (char*)malloc(sizeof(char) * length + 1)) == NULL) return;
+    
+    merge_sort(array, temp, 0, length - 1);
+    free(temp);
+}
+
 /*** End of file ial.c ***/

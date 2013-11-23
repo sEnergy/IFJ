@@ -48,6 +48,10 @@ hashtable_item** copy_hashtable (hashtable_item** hashtable);
 int* build_table (char* substring);
 int search_substring(char* substring, char* string, int *found);
 
+void merge(char string_array[], char output[], int first, int last);
+void merge_sort(char string_array[], char output[], int first, int last);
+void sort_string(char array[]);
+
 #endif
 
 /*** End of file ial.h ***/
