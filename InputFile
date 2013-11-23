@@ -1,10 +1,2 @@
-  "variable $s121__s qwerty"  
-"variable2 $s121__s"
-"variable3 $s121__s  "
-"backslash \\ \e \n newline\t tabulator\" \\x40:\x40"
-""
-"test1"
-//one line comment
-/* block of comment
-***
-/*
+ <?php
+$a = $d +$c;

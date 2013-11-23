@@ -23,7 +23,6 @@ typedef struct buffer_struct
     char* data;
 }* BUFFER_STRUCT;
 
-/* Comment this function */
 int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer);
 
 /* Enumeration of states in INT and DOUBLE section */

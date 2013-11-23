@@ -13,9 +13,13 @@
 #ifndef IFJ_SYNTAX_INCLUDED
 #define IFJ_SYNTAX_INCLUDED
 
-#define IFJ_SYNTAX_DEF_BUFF_SIZE 20
+#include "lex_analyzer.h"
 
-// Comment when finished
+#define IFJ_SYNTAX_DEF_BUFF_SIZE 20
+#define IFJ_OPEN_TAG_SIZE 6
+
+int buffer_init(BUFFER_STRUCT buffer);
+int check_open_tag (FILE* input);
 int syntax_analyzer (char* input_filename);
 
 #endif
