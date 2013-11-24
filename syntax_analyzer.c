@@ -28,7 +28,7 @@ int buffer_init(BUFFER_STRUCT buffer)
     }
     else
     {
-        buffer->data[i] = '\0';
+        buffer->data[0] = '\0';
         buffer->max_length = IFJ_SYNTAX_DEF_BUFF_SIZE;
         buffer->position = 0;
     }
@@ -37,7 +37,7 @@ int buffer_init(BUFFER_STRUCT buffer)
 
 void buffer_clear (BUFFER_STRUCT buffer)
 {
-    fbuffer->data[i] = '\0';
+    fbuffer->data[0] = '\0';
     buffer->position = 0;
 }
 
