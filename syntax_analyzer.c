@@ -37,7 +37,7 @@ int buffer_init(BUFFER_STRUCT buffer)
 
 void buffer_clear (BUFFER_STRUCT buffer)
 {
-    fbuffer->data[0] = '\0';
+    buffer->data[0] = '\0';
     buffer->position = 0;
 }
 

@@ -46,7 +46,7 @@ int write_c(BUFFER_STRUCT buffer, char c)
         buffer->max_length *= 2;
     }
     buffer->data[buffer->position] = c;
-    position++;
+    buffer->position++;
     buffer->data[buffer->position] = '\0';
     return 0;
 }
