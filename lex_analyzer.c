@@ -41,7 +41,7 @@ int write_c(BUFFER_STRUCT buffer, char c)
     {
         new_ptr = (char*) realloc(buffer->data,2*buffer->max_length*sizeof(char));
         if (new_ptr == NULL)
-            return -1;
+            return IFJ_ERR_INTERNAL;
         buffer->data = new_ptr;
         buffer->max_length *= 2;
     }
@@ -143,7 +143,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                 c = fgetc(input);
                 while(c > 31 && c != '\\' && c != '"' && c != '$')
                 {
-                    write_c(buffer,c);
+                    if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                    {
+                        return IFJ_ERR_INTERNAL;
+                    }
+
                     c = fgetc(input);
                 }
                 //check, if next char is not uncorrect
@@ -157,11 +161,19 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                     case '$':
                     {
                         //save $ and check if next char is alpha
-                        write_c(buffer, c);
+                        if (write_c(buffer, c) == IFJ_ERR_INTERNAL)
+                        {
+                            return IFJ_ERR_INTERNAL;
+                        }
+
                         c = fgetc(input);
                         if (isalpha(c) || c == '_')
                         {
-                            write_c(buffer,c);
+                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                            {
+                                return IFJ_ERR_INTERNAL;
+                            }
+
                         }
                         else
                         {
@@ -171,7 +183,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         c = fgetc(input);
                         while(isalnum(c) || c == '_')
                         {
-                            write_c(buffer,c);
+                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                            {
+                                return IFJ_ERR_INTERNAL;
+                            }
+
                             c = fgetc(input);
                         }
                         /*end of string - ' " '
@@ -200,17 +216,29 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         {
                             case 'n':
                             {
-                                write_c(buffer,'\n');
+                                if (write_c(buffer,'\n') == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+
                                 c = '"';
                             } break;
                             case 't':
                             {
-                                write_c(buffer,'\t');
+                                if (write_c(buffer,'\t') == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+
                                 c = '"';
                             } break;
                             case '"':
                             {
-                                write_c(buffer,'"');
+                                if (write_c(buffer,'"') == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+
                                 c = '"';
                             } break;
                             case 'x':
@@ -231,7 +259,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                     {
                                         return IFJ_ERR_LEXICAL;
                                     }
-                                    write_c(buffer,number);
+                                    if (write_c(buffer,number) == IFJ_ERR_INTERNAL)
+                                    {
+                                        return IFJ_ERR_INTERNAL;
+                                    }
+
                                 }
                                 else
                                 {
@@ -241,7 +273,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             } break;
                             case '\\':
                             {
-                                write_c(buffer,'\\');
+                                if (write_c(buffer,'\\') == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+
                                 c = '"';
                             } break;
                             case EOF:
@@ -250,8 +286,16 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             } break;
                             default:
                             {
-                                write_c(buffer,'\\');
-                                write_c(buffer,c);
+                                if (write_c(buffer,'\\') == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+
+                                if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+
                                 c = '"';
                             } break;
                         }//end of switch for escape sequence
@@ -360,11 +404,19 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                     c = fgetc(input);
                     if (isalpha(c) || c == '_')
                     {
-                        write_c(buffer,c);
+                        if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                        {
+                            return IFJ_ERR_INTERNAL;
+                        }
+
                         c = fgetc(input);
                         while (isalpha(c) || isdigit(c) || c == '_')
                         {
-                            write_c(buffer,c);
+                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                            {
+                                return IFJ_ERR_INTERNAL;
+                            }
+
                             c = fgetc(input);
                         }
                         ungetc(c, input);
@@ -475,19 +527,31 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                 {
                                     while (isdigit(c))
                                     {
-                                        write_c(buffer,c);
+                                        if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                        {
+                                            return IFJ_ERR_INTERNAL;
+                                        }
+
                                         c = fgetc(input);
                                     }
                                     /* heading to double section */
                                     if (c == '.')
                                     {
-                                        write_c(buffer,c);
+                                        if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                        {
+                                            return IFJ_ERR_INTERNAL;
+                                        }
+
                                         c = fgetc(input);
                                         state = S_FDBL; //State First (Digit) Double
                                     }
                                     else if (c == 'e' || c == 'E')
                                     {
-                                        write_c(buffer,c);
+                                        if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                        {
+                                            return IFJ_ERR_INTERNAL;
+                                        }
+
                                         c = fgetc(input);
                                         state = S_E_EXP; //Beginning of exponent
                                     }
@@ -505,12 +569,20 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                     {
                                         while (isdigit(c))
                                         {
-                                            write_c(buffer,c);
+                                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                            {
+                                                return IFJ_ERR_INTERNAL;
+                                            }
+
                                             c = fgetc(input);
                                         }
                                         if (c == 'e' || c == 'E')   //Beginning of exponent -> S_E_EXP
                                         {
-                                            write_c(buffer,c);
+                                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                            {
+                                                return IFJ_ERR_INTERNAL;
+                                            }
+
                                             c = fgetc(input);
                                             state = S_E_EXP;
                                         }
@@ -530,17 +602,29 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                 {
                                     if (isdigit(c))     //Exponent's first digit -> S_EXP
                                     {
-                                        write_c(buffer,c);
+                                        if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                        {
+                                            return IFJ_ERR_INTERNAL;
+                                        }
+
                                         c = fgetc(input);
                                         state = S_EXP;
                                     }
                                     else if (c == '+' || c == '-')
                                     {
-                                        write_c(buffer,c);
+                                        if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                        {
+                                            return IFJ_ERR_INTERNAL;
+                                        }
+
                                         c = fgetc(input);
                                         if (isdigit(c)) //Exponent's first digit -> S_EXP
                                         {
-                                            write_c(buffer,c);
+                                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                            {
+                                                return IFJ_ERR_INTERNAL;
+                                            }
+
                                             c = fgetc(input);
                                             state = S_EXP;
                                         }
@@ -558,7 +642,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                 {
                                     while (isdigit(c))
                                     {
-                                        write_c(buffer,c);
+                                        if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                                        {
+                                            return IFJ_ERR_INTERNAL;
+                                        }
+
                                         c = fgetc(input);
                                     }
                                     *token_id = IFJ_T_DOUBLE;
@@ -576,7 +664,11 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         // if different character - end cycle
                         while (isalpha(c) || isdigit(c) || (c == '_'))
                         {
-                            write_c(buffer,c);      // write char to buffer
+                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+                            {
+                                return IFJ_ERR_INTERNAL;
+                            }
+      // write char to buffer
                             c = fgetc(input);       // get new char from input
                         }
                         ungetc(c,input);
