@@ -28,11 +28,7 @@ int buffer_init(BUFFER_STRUCT buffer)
     }
     else
     {
-        for (int i = 0; i < IFJ_SYNTAX_DEF_BUFF_SIZE; ++i)
-        {
-            buffer->data[i] = '\0';
-        }
-
+        buffer->data[i] = '\0';
         buffer->max_length = IFJ_SYNTAX_DEF_BUFF_SIZE;
         buffer->position = 0;
     }
@@ -41,14 +37,8 @@ int buffer_init(BUFFER_STRUCT buffer)
 
 void buffer_clear (BUFFER_STRUCT buffer)
 {
-    for (unsigned int i = 0; i < buffer->max_length; ++i)
-    {
-        buffer->data[i] = '\0';
-    }
-
+    fbuffer->data[i] = '\0';
     buffer->position = 0;
-
-    return;
 }
 
 int check_open_tag (FILE* input)

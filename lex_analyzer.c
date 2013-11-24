@@ -5,7 +5,7 @@
  * Author:              Marcel Fiala
  *                      Luboš Vaníček
  *                      Matúš Turic
- *                      Bambi
+ *                      Ivan Straka
  *                      Attila Večerek
  * Encoding:            UTF-8
  *
@@ -45,8 +45,9 @@ int write_c(BUFFER_STRUCT buffer, char c)
         buffer->data = new_ptr;
         buffer->max_length *= 2;
     }
-    buffer->data[buffer->position++] = c;
-    buffer->data[buffer->position + 1] = '\0';
+    buffer->data[buffer->position] = c;
+    position++;
+    buffer->data[buffer->position] = '\0';
     return 0;
 }
 
