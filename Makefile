@@ -56,7 +56,7 @@ grind:
 
 # cleaning unnecessary files
 clean:
-	-rm -r dependencies.list $(OBJFILES)
+	-rm -r dependencies.list $(OBJFILES) $(NAME)
 
 # deleting dependencies list
 clndep:
