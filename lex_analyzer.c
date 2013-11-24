@@ -14,17 +14,16 @@
  *
 *******************************************************************************/
 
-#include <stdio.h>  // pak můžu smazat
+#include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
-
 #include "lex_analyzer.h"
+#include "syntax_analyzer.h"
 #include "token_id.h"
 #include "errors.h"
-
 
 // array of keywords
 const char *keywords[KEYWORD_NUMBER] =
@@ -64,16 +63,15 @@ int is_hexadecimal(char* str)
 
 int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 {
-    unsigned int token_pos = 0; // position for writing in token
-    (void)token_pos;
+    buffer_clear(buffer);
+    char c = fgetc(input); // current character
 
-    char c; // current character
-    c = fgetc(input);
     if (c == EOF)
     {
         *token_id = IFJ_T_EOF;
         return 0;
     }
+
     while(1)
     {
         switch(c)

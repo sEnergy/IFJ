@@ -10,9 +10,9 @@
  *
 *******************************************************************************/
 
+#include <string.h>
 #include <stdio.h>  // pak můžu smazat
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
 
 #include "token_id.h"
@@ -72,29 +72,10 @@ int syntax_analyzer (char* input_filename)
 {
     int code = 0;
 
-    // buffer fot token content
-    BUFFER_STRUCT token_data = NULL;
-    if ((token_data = (BUFFER_STRUCT) malloc(sizeof(struct buffer_struct))) == NULL)
-    {
-        return IFJ_ERR_INTERNAL;
-    }
-    else
-    {
-        if (buffer_init(token_data) == IFJ_ERR_INTERNAL)
-        {
-            free(token_data);
-            return IFJ_ERR_INTERNAL;
-        }
-    }
-
-    int token_id = -1;
-
     // source file to intepret
     FILE* input = fopen(input_filename, "r");
     if (input == NULL)
     {
-        free(token_data->data);
-        free(token_data);
         return IFJ_ERR_INTERNAL;
     }
 
@@ -102,26 +83,40 @@ int syntax_analyzer (char* input_filename)
     if ((code = check_open_tag (input)) != 0)
     {
         fclose(input);
-        free(token_data->data);
-        free(token_data);
-
         return code;
     }
 
-    int sa_state = IFJ_NTERM_BODY;
+    // buffer fot token content
+    BUFFER_STRUCT token_content = NULL;
 
-    while ((code = lex_analyzer(input, &token_id, token_data)) == 0)
+    if ((token_content = (BUFFER_STRUCT) malloc(sizeof(struct buffer_struct))) == NULL)
     {
-
-
-        printf("Token ID: %i\nToken data: %s\n\n", token_id, token_data->data);
-
-        buffer_clear(token_data);
+        fclose(input);
+        return IFJ_ERR_INTERNAL;
+    }
+    else
+    {
+        if (buffer_init(token_content) == IFJ_ERR_INTERNAL)
+        {
+            fclose(input);
+            free(token_content);
+            return IFJ_ERR_INTERNAL;
+        }
     }
 
+    int token_id;
+
+    while ((code = lex_analyzer(input, &token_id, token_content)) == 0)
+    {
+        printf("Token ID: %i\nToken data: %s\n\n", token_id, token_content->data);
+
+        if (token_id == IFJ_T_EOF) break;
+    }
+
+
     fclose(input);
-    free(token_data->data);
-    free(token_data);
+    free(token_content->data);
+    free(token_content);
     return code;
 }
 
