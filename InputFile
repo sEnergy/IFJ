@@ -2,14 +2,56 @@
 
 /* Program 1 */
 
-function soucet ($a, $b)
+function soucet ($a,$a, $a,$a)
 {
-    return $a + $b;
+    $a= $a;
+    $a= $a;
 }
 
-$var = 45;
 
-$result = soucet(6 + $var);
+function soucet ()
+{
+    while ($a)
+    {
+        $a = $r;
+        $a = $r + 45;
+    }
+}
 
+
+function soucet ($a)
+{
+    if ($d)
+    {
+        $a = tester($a);
+    }
+    else
+    {
+        return $r;
+    }
+}
+
+$a= $a;
+
+if ($d)
+{
+    if ($d)
+    {
+        $a = tester($a, $b);
+    }
+    else
+    {
+        return $r;
+    }
+}
+else
+{
+    return $r;
+}
+
+//function soucet () {$a= 45;}
+
+
+return $a + ($a + $v);
 
 
