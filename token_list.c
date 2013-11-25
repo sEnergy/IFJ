@@ -61,6 +61,18 @@ int TL_Insert (TokenList *List, int token_id, BUFFER_STRUCT token_content)
     return 0;
 }
 
+bool TL_IsEmpty (TokenList *List)
+{
+    if (List->first == NULL)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void TL_ActiveReset (TokenList *List)
 {
     List->active = List->first;

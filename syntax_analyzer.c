@@ -11,7 +11,7 @@
 *******************************************************************************/
 
 #include <string.h>
-#include <stdio.h>  // pak můžu smazat
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -20,6 +20,7 @@
 #include "errors.h"
 #include "token_list.h"
 
+// initicalizes buffer before first use
 int buffer_init(BUFFER_STRUCT buffer)
 {
     buffer->data = (char*) malloc(IFJ_SYNTAX_DEF_BUFF_SIZE*sizeof(char));
@@ -36,15 +37,18 @@ int buffer_init(BUFFER_STRUCT buffer)
     return 0;
 }
 
+// reset buffer for another use
 void buffer_clear (BUFFER_STRUCT buffer)
 {
     buffer->data[0] = '\0';
     buffer->position = 0;
 }
 
+// test the open tag - must be "<?php "
 int check_open_tag (FILE* input)
 {
     unsigned char open_tag_size = IFJ_OPEN_TAG_SIZE;
+    int code;
 
     char *open_tag = (char*) malloc(open_tag_size*sizeof(char));
 
@@ -53,29 +57,38 @@ int check_open_tag (FILE* input)
         return IFJ_ERR_INTERNAL;
     }
 
-    while (open_tag_size--) open_tag[open_tag_size] = '\0';
+    while (open_tag_size--) // intialization of array
+    {
+        open_tag[open_tag_size] = '\0';
+    }
 
+    // test itself
     if ((fscanf(input, "%5c", open_tag) != 1) || strcmp(open_tag, "<?php") != 0
             || !isspace(fgetc(input)))
     {
-        free(open_tag);
-        return IFJ_ERR_SYNTAX;
+        code = IFJ_ERR_SYNTAX;
     }
     else
     {
-        free(open_tag);
-        return 0;
+        code = 0;
     }
 
+    free(open_tag);
+    return code;
 }
 
+/*
+ * Main function of syntax analyzer - handles file, calls all other functions
+ * and so on...
+ */
 int syntax_analyzer (char* input_filename)
 {
-    int code = 0;
+    int code, token_id;
+    FILE* input;
+    BUFFER_STRUCT token_content = NULL; // structure for token data
 
-    // source file to intepret
-    FILE* input = fopen(input_filename, "r");
-    if (input == NULL)
+    // open source file
+    if ((input = fopen(input_filename, "r")) == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
@@ -87,10 +100,8 @@ int syntax_analyzer (char* input_filename)
         return code;
     }
 
-    // buffer fot token content
-    BUFFER_STRUCT token_content = NULL;
-
-    if ((token_content = (BUFFER_STRUCT) malloc(sizeof(struct buffer_struct))) == NULL)
+    // initialization of structure for token data
+    if ((token_content = malloc(sizeof(struct buffer_struct))) == NULL)
     {
         fclose(input);
         return IFJ_ERR_INTERNAL;
@@ -105,27 +116,26 @@ int syntax_analyzer (char* input_filename)
         }
     }
 
-    int token_id;
+    // start syntax analyze itself
+    code = check_syntax(input, &token_id, token_content);
 
-    if ((code = check_syntax(input, &token_id, token_content)) != 0)
-    {
-        fclose(input);
-        free(token_content->data);
-        free(token_content);
-        return code;
-    }
-
+    // free all allocated memory, close file
     fclose(input);
     free(token_content->data);
     free(token_content);
+
     return code;
 }
 
+/*
+ * In infitine loop it reads from input source file and checks their order.
+ * Only SYNTAX ERROR or EOF breaks cycle (and of course, INTERNAL ERROR).
+ */
 int check_syntax (FILE *input, int *token_id, BUFFER_STRUCT token)
 {
     int code;
 
-    while (1) // <BODY>
+    while (1)
     {
         if ((code = lex_analyzer(input, token_id, token)) != 0)
         {
@@ -135,99 +145,31 @@ int check_syntax (FILE *input, int *token_id, BUFFER_STRUCT token)
         {
             if (strcmp(token->data, "function\0") == 0) // function declaration
             {
-                if ((code = lex_analyzer(input, token_id, token)) != 0)
+                if((code = check_function_declaration (input, token_id, token)) != 0)
                 {
                     return code;
                 }
-                else if (*token_id == IFJ_T_ID) // identificator
-                {
-                    if ((code = lex_analyzer(input, token_id, token)) != 0)
-                    {
-                        return code;
-                    }
-                    else if (*token_id == IFJ_T_LB) // <PARAM-LIST> start: '('
-                    {
-                        if ((code = lex_analyzer(input, token_id, token)) != 0)
-                        {
-                            return code;
-                        }
-                        else if (*token_id == IFJ_T_VARIALBE) // first variable
-                        {
-                            while (1)
-                            {
-                                if ((code = lex_analyzer(input, token_id, token)) != 0)
-                                {
-                                    return code;
-                                }
-                                else if (*token_id == IFJ_T_RB) // legal end of <PARAM-LIST>
-                                {
-                                    break;
-                                }
-                                /*
-                                 * <PARAM-LIST> not finished, must be separator
-                                 * and variable here (then cycle repeats)
-                                 */
-                                else if (*token_id == IFJ_T_SEP)
-                                {
-                                    if ((code = lex_analyzer(input, token_id, token)) != 0)
-                                    {
-                                        return code;
-                                    }
-                                    else if (*token_id == IFJ_T_VARIALBE)
-                                    {
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        return IFJ_ERR_SYNTAX;
-                                    }
-                                }
-                                else
-                                {
-                                    return IFJ_ERR_SYNTAX;
-                                }
-                            }
-                        }
-                        else if (*token_id != IFJ_T_RB)
-                        {
-                            return IFJ_ERR_SYNTAX;
-                        }
-
-                        /*
-                         * Ater <PARAM-LIST>, there must be statement scope. ///////
-                         */
-                        if ((code = check_stat_list (input, token_id, token)) != 0)
-                        {
-                            return code;
-                        }
-                    }
-                }
-                else
-                {
-                    return IFJ_ERR_SYNTAX;
-                }
-            } // end: function declaration
+            }
             else if ((strcmp(token->data, "if\0") != 0)
                         && (strcmp(token->data, "while\0") != 0)
                         && (strcmp(token->data, "return\0") != 0))
             {
                 return IFJ_ERR_SYNTAX;
             }
-            else
+            else // return statement, if-else construction or while cycle
             {
-                // token is either keyword "if" or "while" -> check rest of statement
                 if((code = check_statement (input, token_id, token)) != 0)
                 {
                     return code;
                 }
             }
         }
-        else if (*token_id == IFJ_T_EOF) // in <BODY>, EOF is legal
+        else if (*token_id == IFJ_T_EOF) // in"body", EOF is legal
         {
             return 0;
         }
-        else if (*token_id == IFJ_T_VARIALBE)
-        { // start of expression
+        else if (*token_id == IFJ_T_VARIALBE) // assign statement
+        {
             if((code = check_statement (input, token_id, token)) != 0)
             {
                 return code;
@@ -241,6 +183,176 @@ int check_syntax (FILE *input, int *token_id, BUFFER_STRUCT token)
 }
 
 /*
+ * Checks syntax of whole function declaration - identificator, parameter list
+ * in braces and statement list in curly braces.
+ */
+int check_function_declaration (FILE *input, int *token_id, BUFFER_STRUCT token)
+{
+    int code;
+
+    // first, there must be indentificator
+    if ((code = lex_analyzer(input, token_id, token)) != 0)
+    {
+        return code;
+    }
+    else if (*token_id != IFJ_T_ID)
+    {
+        return IFJ_ERR_SYNTAX;
+    }
+
+    // test of parameter list
+    if ((code = check_param_list (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+
+    // after parameter list, there must be corrent statement list
+    if ((code = check_stat_list (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+
+    return 0;
+}
+
+/*
+ * Checks parameter list for fuction definiton - statement list betwenn curly
+ * braces.
+ */
+int check_param_list (FILE *input, int *token_id, BUFFER_STRUCT token)
+{
+    int code;
+
+    // check, if there is openin brace '('
+    if ((code = lex_analyzer(input, token_id, token)) != 0)
+    {
+        return code;
+    }
+    else if (*token_id != IFJ_T_LB)
+    {
+        return IFJ_ERR_SYNTAX;
+    }
+
+    if ((code = lex_analyzer(input, token_id, token)) != 0)
+    {
+        return code;
+    }
+    else if (*token_id == IFJ_T_VARIALBE) // first variable
+    {
+        while (1)
+        {
+            if ((code = lex_analyzer(input, token_id, token)) != 0)
+            {
+                return code;
+            }
+            else if (*token_id == IFJ_T_RB) // legal end of <PARAM-LIST>
+            {
+                break;
+            }
+            /*
+             * <PARAM-LIST> not finished, must be separator
+             * and variable here (then cycle repeats)
+             */
+            else if (*token_id == IFJ_T_SEP)
+            {
+                if ((code = lex_analyzer(input, token_id, token)) != 0)
+                {
+                    return code;
+                }
+                else if (*token_id == IFJ_T_VARIALBE)
+                {
+                    continue;
+                }
+                else
+                {
+                    return IFJ_ERR_SYNTAX;
+                }
+            }
+            else
+            {
+                return IFJ_ERR_SYNTAX;
+            }
+        }
+    }
+    else if (*token_id != IFJ_T_RB)
+    {
+        return IFJ_ERR_SYNTAX;
+    }
+
+    return 0;
+}
+
+/*
+ * Reads whole expression, saves all tokens into list and than calls function,
+ * which test the syntax of the expression.
+ */
+int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
+                        int end_token, bool extra_read)
+{
+    int code;
+
+    // if current token does ot belong to expression, we need to read one
+    if (!extra_read)
+    {
+        if ((code = lex_analyzer(input, token_id, token)) != 0)
+        {
+            return code;
+        }
+    }
+
+    TokenList t_list;
+    TL_Init(&t_list);
+
+    do // until end of file
+    {
+        if (*token_id == end_token)
+        {
+            /*
+             * There is scope of cycle terminal condition. If expression is
+             * empty, it is syntax error. Else, cycle just breaks and control
+             * continues - to check expression witch precedence analysis.
+             */
+            if (!TL_IsEmpty(&t_list)) // not empty -> OK
+            {
+                break;
+            }
+            else // empty -> SYNTAX ERROR
+            {
+                TL_Dispose(&t_list);
+                return IFJ_ERR_SYNTAX;
+            }
+        }
+        // if valid token (literal or variable) ir read, save it to thel list
+        else if (is_operator(*token_id) || is_terminal(*token_id)
+            || *token_id == IFJ_T_RB || *token_id == IFJ_T_LB)
+        {
+            code = TL_Insert(&t_list, *token_id, token);
+        }
+        else // everything else -> SYNTAX ERROR
+        {
+            code = IFJ_ERR_SYNTAX;
+        }
+
+        if (code != 0) // if error occurs, free list and return error
+        {
+            TL_Dispose(&t_list);
+            return code;
+        }
+        // else read another token
+        else if ((code = lex_analyzer(input, token_id, token)) != 0)
+        {
+            return code;
+        }
+
+    } while (*token_id != IFJ_T_EOF);
+
+    /* FROM THIS PLACE, CALL EXPRESSION SYNTAX CHECK*/
+
+    TL_Dispose(&t_list);
+    return 0;
+}
+
+/*
  * This function is called ither with "if", "while" or "variable" token loaded,
  * or i may be start of "return" expression (in this case, i need to read "return"
  * token first)
@@ -249,10 +361,8 @@ int check_statement (FILE *input, int *token_id, BUFFER_STRUCT token)
 {
     int code;
 
-    if (*token_id == IFJ_T_VARIALBE)
+    if (*token_id == IFJ_T_VARIALBE) // possible start of assign
     {
-        //printf("bude to 11 nebo 14 - variable\n");
-
         if ((code = lex_analyzer(input, token_id, token)) != 0)
         {
             return code;
@@ -265,232 +375,43 @@ int check_statement (FILE *input, int *token_id, BUFFER_STRUCT token)
             }
             else if (*token_id == IFJ_T_ID)
             {
-              //  printf("\t-nasel jsem identifikator\n");
-
-                if ((code = lex_analyzer(input, token_id, token)) != 0)
-                    {
-                        return code;
-                    }
-                    else if (*token_id == IFJ_T_LB) // <INPUT-PARAM-LIST> start: '('
-                    {
-                        if ((code = lex_analyzer(input, token_id, token)) != 0)
-                        {
-                            return code;
-                        }
-                        else if (is_terminal(*token_id)) // first variable
-                        {
-                            while (1)
-                            {
-                                if ((code = lex_analyzer(input, token_id, token)) != 0)
-                                {
-                                    return code;
-                                }
-                                else if (*token_id == IFJ_T_RB) // legal end of <INPUT-PARAM-LIST>
-                                {
-                                    break;
-                                }
-                                /*
-                                 * <INPUT-PARAM-LIST> not finished, must be separator
-                                 * and variable here (then cycle repeats)
-                                 */
-                                else if (*token_id == IFJ_T_SEP)
-                                {
-                                    if ((code = lex_analyzer(input, token_id, token)) != 0)
-                                    {
-                                        return code;
-                                    }
-                                    else if (is_terminal(*token_id))
-                                    {
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        return IFJ_ERR_SYNTAX;
-                                    }
-                                }
-                                else
-                                {
-                                    return IFJ_ERR_SYNTAX;
-                                }
-                            }
-                        }
-                        else if (*token_id != IFJ_T_RB)
-                        {
-                            return IFJ_ERR_SYNTAX;
-                        }
-
-                        /*
-                         * Ater <PARAM-LIST>, there must be statement scope. ///////
-                         */
-                        if ((code = lex_analyzer (input, token_id, token)) != 0)
-                        {
-                            return code;
-                        }
-
-                        if (*token_id != IFJ_T_SEMICOLON)
-                        {
-                            return 76;
-                        }
-                    }
-
-                return 0;
+                // assign of return value
+                return check_function_call (input, token_id, token);
             }
-            else // possibility of expression
+            else
             {
-                // printf("variable = EXPRESSION;");
-                TokenList t_list;
-                TL_Init(&t_list);
-
-                do
-                {
-                    if (*token_id == IFJ_T_SEMICOLON)
-                    {
-                        if (t_list.first != NULL)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            TL_Dispose(&t_list);
-                            return 7;
-                        }
-                    }
-                    else if (is_operator(*token_id) || is_terminal(*token_id)
-                        || *token_id == IFJ_T_RB || *token_id == IFJ_T_LB)
-                    {
-                        code = TL_Insert(&t_list, *token_id, token);
-                    }
-                    else
-                    {
-                        TL_Dispose(&t_list);
-                        return 15;
-                    }
-
-                    if (code != 0)
-                    {return code; TL_Dispose(&t_list);}
-
-
-                    if ((code = lex_analyzer(input, token_id, token)) != 0)
-                    {
-                        return code;
-                    }
-
-                } while (*token_id != IFJ_T_EOF);
-
-                TL_Dispose(&t_list);
-                //printf("--- OK\n");
-            } // zpracování expression
-        } // za =
+                // assign from expression
+                return check_expression (input, token_id, token, IFJ_T_SEMICOLON, true);
+            }
+        }
         else
         {
             return IFJ_ERR_SYNTAX;
         }
-
-        return 0;
     }
     else if (strcmp(token->data, "if\0") == 0)
     {
-        //printf("---IF---\n");
-
-        if ((code = check_condition (input, token_id, token)) != 0)
-        {
-            return code;
-        }
-
-        if ((code = check_stat_list (input, token_id, token)) != 0)
-        {
-            return code;
-        }
-
-        if ((code = lex_analyzer (input, token_id, token)) != 0)
-        {
-            return code;
-        }
-
-        if (strcmp(token->data, "else\0") != 0)
-        {
-            return IFJ_ERR_SYNTAX;
-        }
-
-        if ((code = check_stat_list (input, token_id, token)) != 0)
-        {
-            return code;
-        }
-
-        return 0;
+        return check_if_else (input, token_id, token);
     }
     else if (strcmp(token->data, "while\0") == 0)
     {
-        //printf("---WHILE---");
-
-        if ((code = check_condition (input, token_id, token)) != 0)
-        {
-            return code;
-        }
-
-        //printf("podminka ok,");
-
-        if ((code = check_stat_list (input, token_id, token)) != 0)
-        {
-            return code;
-        }
-
-        return 0;
-
+        return check_while (input, token_id, token);
     }
     else if (strcmp(token->data, "return\0") == 0)
     {
-        //printf("return EXPRESSION;");
-
-                TokenList t_list;
-                TL_Init(&t_list);
-
-                do
-                {
-                    if ((code = lex_analyzer(input, token_id, token)) != 0)
-                    {
-                        return code;
-                    }
-                    else
-                    {
-                        if (*token_id == IFJ_T_SEMICOLON)
-                        {
-                            if (t_list.first != NULL)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                TL_Dispose(&t_list);
-                            return 2;
-                            }
-                        }
-                        else if (is_operator(*token_id) || is_terminal(*token_id)
-                            || *token_id == IFJ_T_RB || *token_id == IFJ_T_LB)
-                        {
-                            code = TL_Insert(&t_list, *token_id, token);
-                        }
-                        else
-                        {
-                            TL_Dispose(&t_list);
-                            return 2;
-                        }
-
-                        if (code != 0)
-                        {return code; TL_Dispose(&t_list);}
-                    }
-                } while (*token_id != IFJ_T_EOF);
-
-                TL_Dispose(&t_list);
-               // printf("--- OK\n");
-        return 0;
+        // there must be expression ending with semicolon
+        return check_expression (input, token_id, token, IFJ_T_SEMICOLON, false);
     }
 
-    //printf("\n\ntoken ID: %d", *token_id);
-    return 69;
+    return IFJ_ERR_SYNTAX; // if control gets here, it is definitely error
 }
 
-int check_condition (FILE *input, int *token_id, BUFFER_STRUCT token)
+/*
+ * Check correct function call - this is called after id token is checked, so
+ * it checks only if there is input parameter list in between braces followed
+ * by semicolon.
+ */
+int check_function_call (FILE *input, int *token_id, BUFFER_STRUCT token)
 {
     int code;
 
@@ -498,71 +419,137 @@ int check_condition (FILE *input, int *token_id, BUFFER_STRUCT token)
     {
         return code;
     }
-    else if (*token_id == IFJ_T_LB) // there must be '(' after variable
+    else if (*token_id == IFJ_T_LB) // <INPUT-PARAM-LIST> start: '('
     {
         if ((code = lex_analyzer(input, token_id, token)) != 0)
         {
             return code;
         }
-        else // possibility of expression
+        else if (is_terminal(*token_id)) // first variable
         {
-           // printf("variable = EXPRESSION;");
-            TokenList t_list;
-            TL_Init(&t_list);
-
-            do
+            while (1)
             {
-                if (*token_id == IFJ_T_RB)
-                {
-                    if (t_list.first != NULL)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        TL_Dispose(&t_list);
-                        return 7;
-                    }
-                }
-                else if (is_operator(*token_id) || is_terminal(*token_id)
-                    || *token_id == IFJ_T_RB || *token_id == IFJ_T_LB)
-                {
-                    code = TL_Insert(&t_list, *token_id, token);
-                }
-                else
-                {
-                    TL_Dispose(&t_list);
-                    return 15;
-                }
-
-                if (code != 0)
-                {return code; TL_Dispose(&t_list);}
-
-
                 if ((code = lex_analyzer(input, token_id, token)) != 0)
                 {
                     return code;
                 }
+                else if (*token_id == IFJ_T_RB) // legal end of <INPUT-PARAM-LIST>
+                {
+                    break;
+                }
+                /*
+                 * <INPUT-PARAM-LIST> not finished, must be separator
+                 * and variable here (then cycle repeats)
+                 */
+                else if (*token_id == IFJ_T_SEP)
+                {
+                    if ((code = lex_analyzer(input, token_id, token)) != 0)
+                    {
+                        return code;
+                    }
+                    else if (is_terminal(*token_id))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return IFJ_ERR_SYNTAX;
+                    }
+                }
+                else
+                {
+                    return IFJ_ERR_SYNTAX;
+                }
+            }
+        }
+        else if (*token_id != IFJ_T_RB)
+        {
+            return IFJ_ERR_SYNTAX;
+        }
 
-            } while (*token_id != IFJ_T_EOF);
-
-            TL_Dispose(&t_list);
-            //printf("--- OK\n");
-        } // zpracování if
-    } // za =
-    else
-    {
-        return IFJ_ERR_SYNTAX;
+        // ater input param list, there must be semicolon
+        if ((code = lex_analyzer (input, token_id, token)) != 0)
+        {
+            return code;
+        }
+        else if (*token_id != IFJ_T_SEMICOLON)
+        {
+            return IFJ_ERR_SYNTAX;
+        }
     }
 
     return 0;
 }
 
+// Checks syntax of while construction - condition folowed by statement list
+int check_while (FILE *input, int *token_id, BUFFER_STRUCT token)
+{
+    int code;
+
+    if ((code = check_condition (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+
+    if ((code = check_stat_list (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+
+    return 0;
+}
+
+/*
+ * This function is called after "if" keyword is found. It checks if there
+ * is correct conditon, statement list, "else" keyword and another statement
+ * list.
+ */
+int check_if_else (FILE *input, int *token_id, BUFFER_STRUCT token)
+{
+    int code;
+
+    // condition
+    if ((code = check_condition (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+
+    // than first statement list for case conditon == true
+    if ((code = check_stat_list (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+
+    // after that, there must be "else" keyword
+    if ((code = lex_analyzer (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+    else if (strcmp(token->data, "else\0") != 0)
+    {
+        return IFJ_ERR_SYNTAX;
+    }
+
+    // and statement list for case conditon != true
+    if ((code = check_stat_list (input, token_id, token)) != 0)
+    {
+        return code;
+    }
+
+    // if everything passed, the if-else control construction is fine
+    return 0;
+}
+
+/*
+ * Function checks the syntax of statement list (scope) between curly braces "{}".
+ * This kind of statement list can be found after parameter list in function
+ * definition, in cycles or in if-else control construction.
+ */
 int check_stat_list (FILE *input, int *token_id, BUFFER_STRUCT token)
 {
     int code;
 
-   // printf("\npre- token ID: %d", *token_id);
+    // printf("\npre- token ID: %d", *token_id);
 
     if ((code = lex_analyzer(input, token_id, token)) != 0)
     {
@@ -576,14 +563,18 @@ int check_stat_list (FILE *input, int *token_id, BUFFER_STRUCT token)
         {
             return code;
         }
-
-        if (*token_id == IFJ_T_RCB) // '}' - end of scope
-        { // in this case illegal - scope cannot be empty
+        // this is illegal - the scope must not be empty ("{}")
+        else if (*token_id == IFJ_T_RCB)
+        {
             return IFJ_ERR_SYNTAX;
         }
 
-        do
+        do // until the end of scope '}'
         {
+            /*
+             * Only variable, if-else, while or return is start of statement.
+             * Everything else is means SYNTAX ERROR
+             */
             if ((strcmp(token->data, "if\0") != 0)
                         && (strcmp(token->data, "while\0") != 0)
                         && (strcmp(token->data, "return\0") != 0)
@@ -591,7 +582,7 @@ int check_stat_list (FILE *input, int *token_id, BUFFER_STRUCT token)
             {
                 return IFJ_ERR_SYNTAX;
             }
-            else // variable/if-else/while/return statement
+            else
             {
                 if((code = check_statement (input, token_id, token)) != 0)
                 {
@@ -599,6 +590,7 @@ int check_stat_list (FILE *input, int *token_id, BUFFER_STRUCT token)
                 }
             }
 
+            // read of next token
             if ((code = lex_analyzer(input, token_id, token)) != 0)
             {
                 return code;
@@ -606,7 +598,7 @@ int check_stat_list (FILE *input, int *token_id, BUFFER_STRUCT token)
 
         } while (*token_id != IFJ_T_RCB);
     }
-    else
+    else // scope did not start with '}'
     {
         //printf("token ID: %d", *token_id);
         return IFJ_ERR_SYNTAX;
@@ -615,6 +607,36 @@ int check_stat_list (FILE *input, int *token_id, BUFFER_STRUCT token)
     return 0;
 }
 
+/*
+ * This function chcecks the syntax of condition in format: (<EXPRESSION>).
+ * That means, there must be openint brace '(', expression (that may also contain)
+ * some braces and it all end with closing brace ')'. Syntax of expression and
+ * number of braces is controlled by check_expression().
+ */
+int check_condition (FILE *input, int *token_id, BUFFER_STRUCT token)
+{
+    int code;
+
+    if ((code = lex_analyzer(input, token_id, token)) != 0)
+    {
+        return code;
+    }
+    else if (*token_id == IFJ_T_LB) // there must be '(' before expression
+    {
+        if ((code = lex_analyzer(input, token_id, token)) != 0)
+        {
+            return code;
+        }
+        else // expression
+        {
+           return check_expression (input, token_id, token, IFJ_T_RB, true);
+        }
+    }
+
+    return IFJ_ERR_SYNTAX;
+}
+
+// if token is variable or literal, return true
 bool is_terminal (int token_id)
 {
     if (token_id == IFJ_T_VARIALBE || token_id == IFJ_T_INT
@@ -628,6 +650,7 @@ bool is_terminal (int token_id)
     }
 }
 
+// if token id corresponds with operator that could be in expression, return true
 bool is_operator (int token_id)
 {
     if ( (IFJ_T_NOT_SUPER_EQUAL >= token_id && token_id >= IFJ_T_ASSIGN)

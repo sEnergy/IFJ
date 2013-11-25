@@ -12,6 +12,8 @@
 #ifndef IFJ_TOKEN_LIST_INCLUDED
 #define IFJ_TOKEN_LIST_INCLUDED
 
+#include <stdbool.h>
+
 #include "lex_analyzer.h"
 
 typedef struct Token {
@@ -35,6 +37,7 @@ void TL_ActiveNext (TokenList *List);
 void TL_ActivePrev (TokenList *List);
 void TL_GetID (TokenList *List, unsigned int *id);
 void TL_GetContent (TokenList *List, char** content);
+bool TL_IsEmpty (TokenList *List);
 
 #endif
 
