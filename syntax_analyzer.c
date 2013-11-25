@@ -290,6 +290,7 @@ int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
                         int end_token, bool extra_read)
 {
     int code;
+    int rb_needed = 0;
 
     // if current token does ot belong to expression, we need to read one
     if (!extra_read)
@@ -305,8 +306,8 @@ int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
 
     do // until end of file
     {
-        if (*token_id == end_token)
-        {
+        if (*token_id == end_token && rb_needed == 0) // must be end token and 0
+        {                                             // needed closing brackets
             /*
              * There is scope of cycle terminal condition. If expression is
              * empty, it is syntax error. Else, cycle just breaks and control
@@ -326,6 +327,15 @@ int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
         else if (is_operator(*token_id) || is_terminal(*token_id)
             || *token_id == IFJ_T_RB || *token_id == IFJ_T_LB)
         {
+            if (*token_id == IFJ_T_LB)
+            {
+                rb_needed++; // every '(' means there needs to be another ')'
+            }
+            else if (*token_id == IFJ_T_RB)
+            {
+                rb_needed--; // every ')' decrements number of needed ')'
+            }
+
             code = TL_Insert(&t_list, *token_id, token);
         }
         else // everything else -> SYNTAX ERROR

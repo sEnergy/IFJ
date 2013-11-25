@@ -17,6 +17,7 @@
 #include "token_list.h"
 #include "syntax_analyzer.h"
 
+// initializes token list
 void TL_Init (TokenList *List)
 {
     List->first = List->active = List->last = NULL;
@@ -24,7 +25,7 @@ void TL_Init (TokenList *List)
     return;
 }
 
-// inserts new token in the end of list
+// inserts new item to the end of token list
 int TL_Insert (TokenList *List, int token_id, BUFFER_STRUCT token_content)
 {
     TokenPtr new = malloc(sizeof(*new));
@@ -61,6 +62,7 @@ int TL_Insert (TokenList *List, int token_id, BUFFER_STRUCT token_content)
     return 0;
 }
 
+// returns true if token list is empty; returns false otherwise
 bool TL_IsEmpty (TokenList *List)
 {
     if (List->first == NULL)
@@ -73,11 +75,13 @@ bool TL_IsEmpty (TokenList *List)
     }
 }
 
+// sets first item as active
 void TL_ActiveReset (TokenList *List)
 {
     List->active = List->first;
 }
 
+// shifts activity one token right, if possible
 void TL_ActiveNext (TokenList *List)
 {
     if (List->active != NULL)
@@ -88,6 +92,7 @@ void TL_ActiveNext (TokenList *List)
     return;
 }
 
+// shifts activity one token left, if possible
 void TL_ActivePrev (TokenList *List)
 {
     if (List->active != NULL)
@@ -98,6 +103,7 @@ void TL_ActivePrev (TokenList *List)
     return;
 }
 
+// sets *id to id of active token if possilbe; else sets *id to -1
 void TL_GetID (TokenList *List, unsigned int *id)
 {
     if (List->active != NULL)
@@ -112,6 +118,10 @@ void TL_GetID (TokenList *List, unsigned int *id)
     return;
 }
 
+/*
+ * Sets *content to pointer to content of active token if possilbe; else sets
+ * *content to NULL
+ */
 void TL_GetContent (TokenList *List, char** content)
 {
     if (List->active != NULL)
@@ -126,6 +136,7 @@ void TL_GetContent (TokenList *List, char** content)
     return;
 }
 
+// deletes whole token list
 void TL_Dispose (TokenList *List)
 {
     TokenPtr tmp = List->first;
