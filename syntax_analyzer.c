@@ -649,8 +649,7 @@ int check_condition (FILE *input, int *token_id, BUFFER_STRUCT token)
 // if token is variable or literal, return true
 bool is_terminal (int token_id)
 {
-    if (token_id == IFJ_T_VARIALBE || token_id == IFJ_T_INT
-        || token_id == IFJ_T_DOUBLE || token_id == IFJ_T_STRING)
+    if (IFJ_T_VARIALBE <= token_id && token_id <= IFJ_T_STRING)
     {
         return true;
     }
@@ -663,9 +662,7 @@ bool is_terminal (int token_id)
 // if token id corresponds with operator that could be in expression, return true
 bool is_operator (int token_id)
 {
-    if ( (IFJ_T_NOT_SUPER_EQUAL >= token_id && token_id >= IFJ_T_ASSIGN)
-        || (IFJ_T_MOD >= token_id && token_id >= IFJ_T_PLUS)
-        || token_id == IFJ_T_CONC )
+    if ((IFJ_T_ASSIGN <= token_id && token_id <= IFJ_T_NOT_SUPER_EQUAL))
     {
         return true;
     }
