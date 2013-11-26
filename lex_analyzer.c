@@ -36,7 +36,7 @@ const char *keywords[KEYWORD_NUMBER] =
 int write_c(BUFFER_STRUCT buffer, char c)
 {
     char* new_ptr = NULL;
-    if (buffer->position == buffer->max_length)
+    if (buffer->position >= buffer->max_length)
     {
         new_ptr = (char*) realloc(buffer->data,2*buffer->max_length*sizeof(char));
 
