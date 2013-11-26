@@ -17,6 +17,54 @@
 #include "token_list.h"
 #include "syntax_analyzer.h"
 
+// stack init
+void S_init(Stack_t* S)
+{
+	S->Top = NULL;
+}
+
+bool S_empty(Stack_t* S)
+{
+	return (S->Top == NULL);
+}
+
+void S_insert(Stack_t* S, TokenPtr token)
+{
+	Stack_itemPtr new_item = (Stack_itemPtr) malloc(sizeof(struct Stack_item));
+	if (new_item == NULL)
+	{
+		return IFJ_ERR_INTERNAL;
+	}
+	new_item->content = TokenPtr;
+	new_item->next = S->Top;
+	S->Top = new_item;
+}
+
+void S_top_pop(Stack_t* S, TokenPtr* token)
+{
+	if (S_Empty(S)) return -1;
+	*token = S->Top->content;
+	Stack_itemPtr tmp = S->Top;
+	S->Top = S->Top->next;
+	free(S->Top);
+}
+
+void S_dispose(Stack_t* S)
+{
+	if (S_empty(s)) return;
+	Stack_itemPtr tmp = S->Top;
+	Stack_itemPtr next = S->Top->next;
+	while (tmp != NULL)
+	{
+		free(tmp);
+		tmp = next;
+		if (next != NULL) 
+		{
+			next = next->next;
+		}
+	}
+}
+
 // initializes token list
 void TL_Init (TokenList *List)
 {
@@ -36,6 +84,8 @@ int TL_Insert (TokenList *List, int token_id, BUFFER_STRUCT token_content)
     }
 
     new->id = token_id;
+    new->next = NULL;
+    nwe->condition = NULL;
 
     int size = (token_content->position) + 1;
 
