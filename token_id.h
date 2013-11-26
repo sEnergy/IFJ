@@ -31,7 +31,7 @@ enum token_identificators
     IFJ_T_NOT_SUPER_EQUAL, // '!=='
     IFJ_T_LB, // '('
     IFJ_T_RB,  // ')'
-    IFJ_T_MOD, // '%'
+    IFJ_T_MOD, // '$' for PSA 
     IFJ_T_EQUAL, // '=='
     IFJ_T_NOT_EQUAL, // '!='
     IFJ_T_LSB, // '['
