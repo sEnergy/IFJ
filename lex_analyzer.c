@@ -67,7 +67,8 @@ int is_hexadecimal(char* str)
 
 int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 {
-    buffer_clear(buffer);
+	//zmenit buffer - pro efektivnost
+	buffer_next_token;
     char c = fgetc(input); // current character
 
     if (c == EOF)

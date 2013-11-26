@@ -54,7 +54,10 @@ void TL_Init (TokenList *List);
 void TL_Dispose (TokenList *List);
 
 // inserts new item to the end of token list
-int TL_Insert (TokenList *List, int token_id, BUFFER_STRUCT token_content);
+int TL_Insert_Last (TokenList *List, int token_id, BUFFER_STRUCT token_content);
+
+// inserts new item to the beginning of token list
+int TL_Insert_First (TokenList *List, int token_id, BUFFER_STRUCT token_content);
 
 // sets first item as active
 void TL_ActiveReset (TokenList *List);

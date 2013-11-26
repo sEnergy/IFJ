@@ -38,7 +38,7 @@ int buffer_init(BUFFER_STRUCT buffer)
 }
 
 // reset buffer for another use
-void buffer_clear (BUFFER_STRUCT buffer)
+void buffer_next_token (BUFFER_STRUCT buffer)
 {
     buffer->position++;
 }
@@ -283,7 +283,7 @@ int check_param_list (FILE *input, int *token_id, BUFFER_STRUCT token)
 
 /*
  * Reads whole expression, saves all tokens into list and than calls function,
- * which test the syntax of the expression.
+ * which tests the syntax of the expression.
  */
 int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
                         int end_token, bool extra_read)
@@ -291,7 +291,7 @@ int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
     int code;
     int rb_needed = 0;
 
-    // if current token does ot belong to expression, we need to read one
+    // if current token does not belong to expression, we need to read one
     if (!extra_read)
     {
         if ((code = lex_analyzer(input, token_id, token)) != 0)
@@ -310,7 +310,7 @@ int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
             /*
              * There is scope of cycle terminal condition. If expression is
              * empty, it is syntax error. Else, cycle just breaks and control
-             * continues - to check expression witch precedence analysis.
+             * continues - to check expression witch(čarodějnice?) precedence analysis.
              */
             if (!TL_IsEmpty(&t_list)) // not empty -> OK
             {
@@ -322,7 +322,7 @@ int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
                 return IFJ_ERR_SYNTAX;
             }
         }
-        // if valid token (literal or variable) ir read, save it to thel list
+        // if valid token (literal or variable) or read, save it to thel list
         else if (is_operator(*token_id) || is_terminal(*token_id)
             || *token_id == IFJ_T_RB || *token_id == IFJ_T_LB)
         {
@@ -362,8 +362,8 @@ int check_expression (FILE *input, int *token_id, BUFFER_STRUCT token,
 }
 
 /*
- * This function is called ither with "if", "while" or "variable" token loaded,
- * or i may be start of "return" expression (in this case, i need to read "return"
+ * This function is called either with "if", "while" or "variable" token loaded,
+ * or it may be start of "return" expression (in this case, i need to read "return"
  * token first)
  */
 int check_statement (FILE *input, int *token_id, BUFFER_STRUCT token)

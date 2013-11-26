@@ -73,8 +73,37 @@ void TL_Init (TokenList *List)
     return;
 }
 
+// inserts new item to the beginning of token list
+int TL_Insert_First (TokenList *List, TokenPtr token)
+{
+    List_itemPtr new = malloc(sizeof(struct List_item));
+
+    if (new == NULL)
+    {
+        return IFJ_ERR_INTERNAL;
+    }
+
+    new->content = token;
+    
+
+    if (List->last == NULL)
+    {
+        List->first = List->last = new;
+        new->LPtr = new->RPtr = NULL;
+    }
+    else
+    {
+        new->LPtr = NULL;
+        new->RPtr = List->first;
+        List->First->LPtr = new;
+        List->First = new;
+    }
+
+    return 0;
+}
+
 // inserts new item to the end of token list
-int TL_Insert (TokenList *List, TokenPtr token)
+int TL_Insert_Last (TokenList *List, TokenPtr token)
 {
     List_itemPtr new = malloc(sizeof(struct List_item));
 
