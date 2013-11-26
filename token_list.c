@@ -20,49 +20,49 @@
 // stack init
 void S_init(Stack_t* S)
 {
-	S->Top = NULL;
+    S->Top = NULL;
 }
-
+// is stack empty?
 bool S_empty(Stack_t* S)
 {
-	return (S->Top == NULL);
+    return (S->Top == NULL);
 }
-
+// insert token
 void S_insert(Stack_t* S, TokenPtr token)
 {
-	Stack_itemPtr new_item = (Stack_itemPtr) malloc(sizeof(struct Stack_item));
-	if (new_item == NULL)
-	{
-		return IFJ_ERR_INTERNAL;
-	}
-	new_item->content = TokenPtr;
-	new_item->next = S->Top;
-	S->Top = new_item;
+    Stack_itemPtr new_item = (Stack_itemPtr) malloc(sizeof(struct Stack_item));
+    if (new_item == NULL)
+    {
+        return IFJ_ERR_INTERNAL;
+    }
+    new_item->content = TokenPtr;
+    new_item->next = S->Top;
+    S->Top = new_item;
 }
-
+// top&pop
 void S_top_pop(Stack_t* S, TokenPtr* token)
 {
-	if (S_Empty(S)) return -1;
-	*token = S->Top->content;
-	Stack_itemPtr tmp = S->Top;
-	S->Top = S->Top->next;
-	free(S->Top);
+    if (S_Empty(S)) return -1;
+    *token = S->Top->content;
+    Stack_itemPtr tmp = S->Top;
+    S->Top = S->Top->next;
+    free(S->Top);
 }
-
+// dispose
 void S_dispose(Stack_t* S)
 {
-	if (S_empty(s)) return;
-	Stack_itemPtr tmp = S->Top;
-	Stack_itemPtr next = S->Top->next;
-	while (tmp != NULL)
-	{
-		free(tmp);
-		tmp = next;
-		if (next != NULL) 
-		{
-			next = next->next;
-		}
-	}
+    if (S_empty(s)) return;
+    Stack_itemPtr tmp = S->Top;
+    Stack_itemPtr next = S->Top->next;
+    while (tmp != NULL)
+    {
+        free(tmp);
+        tmp = next;
+        if (next != NULL) 
+        {
+            next = next->next;
+        }
+    }
 }
 
 // initializes token list
@@ -74,27 +74,17 @@ void TL_Init (TokenList *List)
 }
 
 // inserts new item to the end of token list
-int TL_Insert (TokenList *List, int token_id, BUFFER_STRUCT token_content)
+int TL_Insert (TokenList *List, TokenPtr token)
 {
-    TokenPtr new = malloc(sizeof(*new));
+    List_itemPtr new = malloc(sizeof(struct List_item));
 
     if (new == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
 
-    new->id = token_id;
-    new->next = NULL;
-    nwe->condition = NULL;
-
-    int size = (token_content->position) + 1;
-
-    new->content = malloc(size*sizeof(char));
-
-    while (size--)
-    {
-        new->content[size] = token_content->data[size];
-    }
+    new->content = token;
+    
 
     if (List->last == NULL)
     {
@@ -171,7 +161,7 @@ void TL_GetID (TokenList *List, unsigned int *id)
 /*
  * Sets *content to pointer to content of active token if possilbe; else sets
  * *content to NULL
- */
+ * PROBABLY NOT NEEDED
 void TL_GetContent (TokenList *List, char** content)
 {
     if (List->active != NULL)
@@ -185,7 +175,7 @@ void TL_GetContent (TokenList *List, char** content)
 
     return;
 }
-
+*/
 // deletes whole token list
 void TL_Dispose (TokenList *List)
 {

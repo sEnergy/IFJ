@@ -16,28 +16,35 @@
 
 #include "lex_analyzer.h"
 
-// token list item
+// stack item
 typedef struct Stack_item{
-		TokenPtr content;
-		struct stack_item* next;
-	} *Stack_itemPtr;
+        TokenPtr content;
+        struct stack_item* next;
+    } *Stack_itemPtr;
+// stack
 typedef struct{
-		stack_itemPtr* Top;
-		} Stack_t;
+        Stack_itemPtr Top;
+        } Stack_t;
+// token
 typedef struct Token {
         unsigned int id; // token id - type of token
-        char *content; // content of token
+        unsigned long long content; // content of token
         struct Token *condition;
         struct Token *next;
         struct Token *RPtr; // pointer to next token
         struct Token *LPtr; // pointer to previous token
 } *TokenPtr;
-
-// token list
+// list item
+typedef struct List_item{
+        TokenPtr content;
+        struct list_item* LPtr;
+        struct list_item* RPtr;
+    }*s List_itemPtr;
+// list
 typedef struct {
-    TokenPtr first; // pointer to first token
-    TokenPtr active; // pointer to active token
-    TokenPtr last; // pointer to last token
+    List_itemPtr first; // pointer to first token
+    List_itemPtr active; // pointer to active token
+    List_itemPtr last; // pointer to last token
 } TokenList;
 
 // initializes token list
