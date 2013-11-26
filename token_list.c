@@ -49,13 +49,13 @@ int TL_Insert (TokenList *List, int token_id, BUFFER_STRUCT token_content)
     if (List->last == NULL)
     {
         List->first = List->last = new;
-        new->prev = new->next = NULL;
+        new->LPtr = new->RPtr = NULL;
     }
     else
     {
-        new->prev = List->last;
-        new->next = NULL;
-        List->last->next = new;
+        new->LPtr = List->last;
+        new->RPtr = NULL;
+        List->last->RPtr = new;
         List->last = new;
     }
 
@@ -86,7 +86,7 @@ void TL_ActiveNext (TokenList *List)
 {
     if (List->active != NULL)
     {
-        List->active = List->active->next;
+        List->active = List->active->RPtr;
     }
 
     return;
@@ -97,7 +97,7 @@ void TL_ActivePrev (TokenList *List)
 {
     if (List->active != NULL)
     {
-        List->active = List->active->prev;
+        List->active = List->active->LPtr;
     }
 
     return;
@@ -145,7 +145,7 @@ void TL_Dispose (TokenList *List)
     {
         List->first = List->active = List->last = NULL;
     }
-    else if (tmp->next == NULL) // just one token
+    else if (tmp->RPtr == NULL) // just one token
     {
         free(List->last->content);
         free(List->last);
@@ -155,10 +155,10 @@ void TL_Dispose (TokenList *List)
     {
         do // freeing tokens one by one
         {
-            tmp = tmp->next;
-            free(tmp->prev->content);
-            free(tmp->prev);
-        } while (tmp->next != NULL);
+            tmp = tmp->RPtr;
+            free(tmp->LPtr->content);
+            free(tmp->LPtr);
+        } while (tmp->RPtr != NULL);
 
         // freeing last token manually
         free(List->last->content);

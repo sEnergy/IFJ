@@ -40,7 +40,7 @@ int buffer_init(BUFFER_STRUCT buffer)
 // reset buffer for another use
 void buffer_clear (BUFFER_STRUCT buffer)
 {
-    position++;
+    buffer->position++;
 }
 
 // test the open tag - must be "<?php "
@@ -100,14 +100,14 @@ int syntax_analyzer (char* input_filename)
     }
 
     // initialization of structure for token data
-    if ((memory = malloc(sizeof(struct buffer_struct))) == NULL)
+    if ((token_content = malloc(sizeof(struct buffer_struct))) == NULL)
     {
         fclose(input);
         return IFJ_ERR_INTERNAL;
     }
     else
     {
-        if (buffer_init(memory) == IFJ_ERR_INTERNAL)
+        if (buffer_init(token_content) == IFJ_ERR_INTERNAL)
         {
             fclose(input);
             free(token_content);
@@ -116,7 +116,7 @@ int syntax_analyzer (char* input_filename)
     }
 
     // start syntax analyze itself
-    code = check_syntax(input, &token_id, memory);
+    code = check_syntax(input, &token_id, token_content);
 
     // free all allocated memory, close file
     fclose(input);
