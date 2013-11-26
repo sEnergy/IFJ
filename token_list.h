@@ -20,6 +20,7 @@
 typedef struct Token {
         unsigned int id; // token id - type of token
         char *content; // content of token
+        bool is_token;
         struct Token *prev; // pointer to next token
         struct Token *next; // pointer to previous token
 } *TokenPtr;
