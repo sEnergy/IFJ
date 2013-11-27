@@ -2,10 +2,5 @@
 
 /* Program 1 */
 
-function soucet ($a,$a, $a,$a)
-{
-    $a= $a;
-    $a= ($a + ($t + $j)) / 2;
-}
-
+while ($a) {$a=1;}
 

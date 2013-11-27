@@ -67,14 +67,14 @@ int is_hexadecimal(char* str)
 }
 void buffer_next_token(BUFFER_STRUCT buffer)
 {
-	buffer->position++;
+    buffer->position++;
 }
 
 int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
 {
-	//zmenit buffer - pro efektivnost
-	buffer_next_token(buffer);
-	token->content = buffer->position;
+    //zmenit buffer - pro efektivnost
+    buffer_next_token(buffer);
+    token->content = buffer->position;
     char c = fgetc(input); // current character
 
     if (c == EOF)

@@ -27,10 +27,10 @@
 
 typedef struct htable_item 
 {
-	int type;
-	struct htable_item* next;
-	char* value;
-	char* string;
+    int type;
+    struct htable_item* next;
+    char* value;
+    char* string;
 } hashtable_item;
 
 /*

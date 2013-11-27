@@ -1,17 +1,17 @@
 ################################################################################
  #
- # Project name:        IFJ - Team project
- # Filename:            errors.h
- # Author:              Marcel Fiala
- # Encoding:            UTF-8
+ # Project name:		IFJ - Team project
+ # Filename:			errors.h
+ # Author:			  Marcel Fiala
+ # Encoding:			UTF-8
  #
- # Description:         Definition of error codes.
+ # Description:		 Definition of error codes.
  #
 ################################################################################
 
 NAME=ifj_070
 CC=colorgcc
-CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic -g3
+CFLAGS=-std=c99 -Wall -Wextra  -pedantic -g3
 ARCHIVE_NAME=xvecer17
 
 OBJFILES=main.o syntax_analyzer.o lex_analyzer.o ial.o token_list.o
