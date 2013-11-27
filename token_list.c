@@ -16,7 +16,7 @@
 #include "errors.h"
 #include "token_list.h"
 #include "syntax_analyzer.h"
-
+/*
 // stack init
 void S_init(Stack_t* S)
 {
@@ -28,14 +28,14 @@ bool S_empty(Stack_t* S)
     return (S->Top == NULL);
 }
 // insert token
-void S_insert(Stack_t* S, TokenPtr token)
+int S_insert(Stack_t* S, TokenPtr token)
 {
     Stack_itemPtr new_item = (Stack_itemPtr) malloc(sizeof(struct Stack_item));
     if (new_item == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
-    new_item->content = TokenPtr;
+    new_item->content = token;
     new_item->next = S->Top;
     S->Top = new_item;
 }
@@ -64,7 +64,7 @@ void S_dispose(Stack_t* S)
         }
     }
 }
-
+*/
 // initializes token list
 void TL_Init (TokenList *List)
 {
@@ -95,8 +95,8 @@ int TL_Insert_First (TokenList *List, TokenPtr token)
     {
         new->LPtr = NULL;
         new->RPtr = List->first;
-        List->First->LPtr = new;
-        List->First = new;
+        List->first->LPtr = new;
+        List->first = new;
     }
 
     return 0;
@@ -172,7 +172,7 @@ void TL_ActivePrev (TokenList *List)
     return;
 }
 
-// sets *id to id of active token if possilbe; else sets *id to -1
+/* sets *id to id of active token if possilbe; else sets *id to -1
 void TL_GetID (TokenList *List, unsigned int *id)
 {
     if (List->active != NULL)
@@ -186,7 +186,7 @@ void TL_GetID (TokenList *List, unsigned int *id)
 
     return;
 }
-
+*/
 /*
  * Sets *content to pointer to content of active token if possilbe; else sets
  * *content to NULL
@@ -208,7 +208,7 @@ void TL_GetContent (TokenList *List, char** content)
 // deletes whole token list
 void TL_Dispose (TokenList *List)
 {
-    TokenPtr tmp = List->first;
+    List_itemPtr tmp = List->first;
 
     if (tmp == NULL) // empty list - just NULLing of pointers
     {

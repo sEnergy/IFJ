@@ -1,5 +1,7 @@
 //jebnut ma ide z tohto
 void shift(Stack_t* S, TokenList* list)
+{
+	
 (void*) PSA(TokenList* list)
 {
 	int table[14][14] = 
@@ -27,14 +29,19 @@ void shift(Stack_t* S, TokenList* list)
 	*TokenPtr last = malloc(sizeof(struck Token));
 	first->id = IFJ_T_MOD;
 	first->content = 0;
+	first->next = NULL;
+	first->condition = NULL;
 	first->LPtr = NULL;
 	first->RPtr = NULL;
 	first->id = IFJ_T_MOD;
 	last->content = 0;
+	last->next = NULL;
+	last->condition = NULL;
 	last->LPtr = NULL;
 	last->RPtr = NULL;
 	TL_Insert_Last(list,last);
 	TL_Insert_First(list,first);
+	
 	while (!(list->first->RPtr == list->last->LPtr and is_terminal(list->first->id)))
 	{
 		if (is_terminal(list->active->id)) 

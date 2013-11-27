@@ -15,6 +15,7 @@
 
 // defined number of keywords
 #define KEYWORD_NUMBER 8
+#include "token_list.h"
 
 typedef struct buffer_struct
 {
@@ -23,7 +24,7 @@ typedef struct buffer_struct
     char* data;
 }* BUFFER_STRUCT;
 
-int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer);
+int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer);
 
 /* Enumeration of states in INT and DOUBLE section */
 enum state

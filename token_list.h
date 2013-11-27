@@ -14,11 +14,10 @@
 
 #include <stdbool.h>
 
-#include "lex_analyzer.h"
 
 // stack item
 typedef struct Stack_item{
-        TokenPtr content;
+        struct Token* content;
         struct stack_item* next;
     } *Stack_itemPtr;
 // stack
@@ -37,9 +36,9 @@ typedef struct Token {
 // list item
 typedef struct List_item{
         TokenPtr content;
-        struct list_item* LPtr;
-        struct list_item* RPtr;
-    }*s List_itemPtr;
+        struct List_item* LPtr;
+        struct List_item* RPtr;
+    }* List_itemPtr;
 // list
 typedef struct {
     List_itemPtr first; // pointer to first token
@@ -54,10 +53,10 @@ void TL_Init (TokenList *List);
 void TL_Dispose (TokenList *List);
 
 // inserts new item to the end of token list
-int TL_Insert_Last (TokenList *List, int token_id, BUFFER_STRUCT token_content);
+int TL_Insert_Last (TokenList *List, TokenPtr token_id);
 
 // inserts new item to the beginning of token list
-int TL_Insert_First (TokenList *List, int token_id, BUFFER_STRUCT token_content);
+int TL_Insert_First (TokenList *List, TokenPtr token_id);
 
 // sets first item as active
 void TL_ActiveReset (TokenList *List);

@@ -16,6 +16,7 @@
 #include "syntax_analyzer.h"
 #include "ial.h"
 
+
 int main (int argc, char *argv[])
 {
     int code = 0;

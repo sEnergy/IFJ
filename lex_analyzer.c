@@ -20,9 +20,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+#include "token_id.h"
 #include "lex_analyzer.h"
 #include "syntax_analyzer.h"
-#include "token_id.h"
 #include "errors.h"
 
 // array of keywords
@@ -64,16 +65,21 @@ int is_hexadecimal(char* str)
     }
     return 1;
 }
+void buffer_next_token(BUFFER_STRUCT buffer)
+{
+	buffer->position++;
+}
 
-int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
+int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
 {
 	//zmenit buffer - pro efektivnost
-	buffer_next_token;
+	buffer_next_token(buffer);
+	token->content = buffer->position;
     char c = fgetc(input); // current character
 
     if (c == EOF)
     {
-        *token_id = IFJ_T_EOF;
+        token->id = IFJ_T_EOF;
         return 0;
     }
 
@@ -82,59 +88,59 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
         switch(c)
         {
             case '.':
-                *token_id = IFJ_T_CONC;
+                token->id = IFJ_T_CONC;
                 return 0;
                 break;
             case ',':
-                *token_id = IFJ_T_SEP;
+                token->id = IFJ_T_SEP;
                 return 0;
                 break;
             case '+':
-                *token_id = IFJ_T_PLUS;
+                token->id = IFJ_T_PLUS;
                 return 0;
                 break;
             case '-':
-                *token_id = IFJ_T_MIN;
+                token->id = IFJ_T_MIN;
                 return 0;
                 break;
             case '*':
-                *token_id = IFJ_T_MUL;
+                token->id = IFJ_T_MUL;
                 return 0;
                 break;
             case '%':
-                *token_id = IFJ_T_MOD;
+                token->id = IFJ_T_MOD;
                 return 0;
                 break;
             case '(':
-                *token_id = IFJ_T_LB;
+                token->id = IFJ_T_LB;
                 return 0;
                 break;
             case ')':
-                *token_id = IFJ_T_RB;
+                token->id = IFJ_T_RB;
                 return 0;
                 break;
             case '[':
-                *token_id = IFJ_T_LSB;
+                token->id = IFJ_T_LSB;
                 return 0;
                 break;
             case ']':
-                *token_id = IFJ_T_RSB;
+                token->id = IFJ_T_RSB;
                 return 0;
                 break;
             case '{':
-                *token_id = IFJ_T_LCB;
+                token->id = IFJ_T_LCB;
                 return 0;
                 break;
             case '}':
-                *token_id = IFJ_T_RCB;
+                token->id = IFJ_T_RCB;
                 return 0;
                 break;
             case ';':
-                *token_id = IFJ_T_SEMICOLON;
+                token->id = IFJ_T_SEMICOLON;
                 return 0;
                 break;
             case EOF:
-                *token_id = IFJ_T_EOF;
+                token->id = IFJ_T_EOF;
                 return 0;
                 break;
             /*
@@ -199,7 +205,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                          */
                         if (c == '"')
                         {
-                            *token_id = IFJ_T_STRING;
+                            token->id = IFJ_T_STRING;
                             return 0;
                         }
                         else if(isspace(c))
@@ -304,7 +310,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                     //end of string
                     case '"':
                     {
-                        *token_id = IFJ_T_STRING;
+                        token->id = IFJ_T_STRING;
                         return 0;
                     } break;
                 } //end of {\,$,"} switch
@@ -318,12 +324,12 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 
                     if (c == '=')
                     {
-                        *token_id = IFJ_T_LESS_EQUAL;
+                        token->id = IFJ_T_LESS_EQUAL;
                         return 0;
                     }
                     else
                     {
-                        *token_id = IFJ_T_LESS;
+                        token->id = IFJ_T_LESS;
                         ungetc(c, input);
                         return 0;
                     }
@@ -334,12 +340,12 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 
                     if (c == '=')
                     {
-                        *token_id = IFJ_T_GREATER_EQUAL;
+                        token->id = IFJ_T_GREATER_EQUAL;
                         return 0;
                     }
                     else
                     {
-                        *token_id = IFJ_T_GREATER;
+                        token->id = IFJ_T_GREATER;
                         ungetc(c, input);
                         return 0;
                     }
@@ -354,12 +360,12 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 
                         if (c == '=')
                         {
-                            *token_id = IFJ_T_NOT_SUPER_EQUAL;
+                            token->id = IFJ_T_NOT_SUPER_EQUAL;
                             return 0;
                         }
                         else
                         {
-                            *token_id = IFJ_T_NOT_EQUAL;
+                            token->id = IFJ_T_NOT_EQUAL;
                             ungetc(c, input);
                             return 0;
                         }
@@ -379,19 +385,19 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 
                         if (c == '=')
                         {
-                            *token_id = IFJ_T_SUPER_EQUAL;
+                            token->id = IFJ_T_SUPER_EQUAL;
                             return 0;
                         }
                         else
                         {
-                            *token_id = IFJ_T_EQUAL;
+                            token->id = IFJ_T_EQUAL;
                             ungetc(c, input);
                             return 0;
                         }
                     }
                     else
                     {
-                        *token_id = IFJ_T_ASSIGN;
+                        token->id = IFJ_T_ASSIGN;
                         ungetc(c, input);
                         return 0;
                     }
@@ -418,7 +424,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                             c = fgetc(input);
                         }
                         ungetc(c, input);
-                        *token_id = IFJ_T_VARIALBE;
+                        token->id = IFJ_T_VARIALBE;
                         return 0;
                     }
                     else
@@ -441,7 +447,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
 
                             if (c == EOF)
                             {
-                                *token_id = IFJ_T_EOF;
+                                token->id = IFJ_T_EOF;
                                 return 0;
                             }
                             else if (c == '\n') // end of coment
@@ -489,13 +495,13 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         }
                         else
                         {
-                            *token_id = IFJ_T_EOF;
+                            token->id = IFJ_T_EOF;
                             return 0;
                         }
                     }
                     else // division
                     {
-                        *token_id = IFJ_T_DIV;
+                        token->id = IFJ_T_DIV;
                         ungetc(c, input);
                         return 0;
                     }
@@ -553,7 +559,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                     /*****************************/
                                     else        //Stays Integer
                                     {
-                                        *token_id = IFJ_T_INT;
+                                        token->id = IFJ_T_INT;
                                         ungetc(c,input);
                                         return 0;
                                     }
@@ -581,7 +587,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                         }
                                         else    //no exponent, return DOUBLE
                                         {
-                                            *token_id = IFJ_T_DOUBLE;
+                                            token->id = IFJ_T_DOUBLE;
                                             ungetc(c,input);
                                             return 0;
                                         }
@@ -635,7 +641,7 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                                         }
                                         c = fgetc(input);
                                     }
-                                    *token_id = IFJ_T_DOUBLE;
+                                    token->id = IFJ_T_DOUBLE;
                                     ungetc(c,input);
                                     return 0;
                                 }
@@ -658,15 +664,16 @@ int lex_analyzer (FILE *input, int *token_id, BUFFER_STRUCT buffer)
                         }
                         ungetc(c,input);
 
-                        (*token_id) = IFJ_T_ID;     // token = identificator
+                        token->id = IFJ_T_ID;     // token = identificator
                         int i = 0;                  // index
                         while(i < KEYWORD_NUMBER)
                         {
                             // compare data in buffer with keywords
-                            if(strcmp(buffer->data,keywords[i]) == 0 )
+                            if(strcmp(&buffer->data[token->content],keywords[i]) == 0 )
                             {
                                 // found match - token = keyword - end cycle
-                                (*token_id) = IFJ_T_KEYWORD;
+                                token->id = IFJ_T_KEYWORD;
+                                
                                 break;
                             }
                             // increase index
