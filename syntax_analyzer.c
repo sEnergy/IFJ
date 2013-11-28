@@ -321,9 +321,9 @@ int syntax_analyzer (char* input_filename)
     }
 
     // start syntax analyze itself
-    code = check_syntax(input, token, token_content);
+    code = check_syntax(input, &token, token_content);
     
-    
+//    printf("%d",token->id);
     // starts interpret
     /*
     if (code == 0)
@@ -344,9 +344,12 @@ int syntax_analyzer (char* input_filename)
  * In infitine loop it reads from input source file and checks their order.
  * Only SYNTAX ERROR or EOF breaks cycle (and of course, INTERNAL ERROR).
  */
-int check_syntax (FILE *input, TokenPtr token, BUFFER_STRUCT big_string)
+int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
 {
     int code;
+    TokenPtr token = *token_oldPtr;
+    TokenPtr token_new = NULL;
+    TokenPtr* ancestorPtr = token_oldPtr;
 //    TokenPtr token = *first_token;
     while (1)
     {
@@ -371,7 +374,7 @@ int check_syntax (FILE *input, TokenPtr token, BUFFER_STRUCT big_string)
             }
             else // return statement, if-else construction or while cycle
             {
-                if((code = check_statement (input, &token, big_string)) != 0)
+                if((code = check_statement (input, ancestorPtr, big_string)) != 0)
                 {
                     return code;
                 }
@@ -383,7 +386,7 @@ int check_syntax (FILE *input, TokenPtr token, BUFFER_STRUCT big_string)
         }
         else if (token->id == IFJ_T_VARIALBE) // assign statement
         {
-            if((code = check_statement (input, &token, big_string)) != 0)
+            if((code = check_statement (input, ancestorPtr, big_string)) != 0)
             {
                 return code;
             }
@@ -393,13 +396,13 @@ int check_syntax (FILE *input, TokenPtr token, BUFFER_STRUCT big_string)
         {
             return IFJ_ERR_SYNTAX;
         }
-        TokenPtr token_tmp = NULL;
-        if ((token_tmp = new_token())==NULL)
+        if ((token_new = new_token())==NULL)
         {
             return IFJ_ERR_INTERNAL;
         }
-        token->next = token_tmp;
-        token_tmp = token;
+        ancestorPtr = &token->next;
+        token->next = token_new;
+        token = token_new;
     }
 }
 
@@ -619,7 +622,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         }
         
     } while (token->id != IFJ_T_EOF);
-    List_itemPtr tmp = t_list.first;
+//    List_itemPtr tmp = t_list.first;
 /*    while (tmp != NULL)
     {
         printf("%d ",tmp->content->id);

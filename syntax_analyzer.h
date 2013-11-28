@@ -41,7 +41,7 @@ int syntax_analyzer (char* input_filename);
  * In infitine loop it reads from input source file and checks their order.
  * Only SYNTAX ERROR or EOF breaks cycle (and of course, INTERNAL ERROR).
  */
-int check_syntax (FILE *input, TokenPtr token, BUFFER_STRUCT big_string);
+int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string);
 
 /*
  * This function is called ither with "if", "while" or "variable" token loaded,
