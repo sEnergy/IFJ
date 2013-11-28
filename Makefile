@@ -10,7 +10,7 @@
 ################################################################################
 
 NAME=ifj_070
-CC=colorgcc
+CC=gcc
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -g3
 ARCHIVE_NAME=xvecer17
 

@@ -43,25 +43,22 @@ TokenPtr new_token(void)
 int work(Stack_t* stack, TokenList* list)
 {
     List_itemPtr proceeded = list->active->LPtr;
-    printf("||%d\n",proceeded->content->id);
+//    printf("||%d\n",proceeded->content->id);
     int i = 0;
     while(proceeded != NULL && proceeded->content != S_top(stack))
     {
         i++;
         proceeded = proceeded->LPtr;
         
-    printf("||%d\n",proceeded->content->id);
+//    printf("||%d\n",proceeded->content->id);
         if (i>=6)
         {
-            printf("chyba1\n");
             return IFJ_ERR_SYNTAX;
         }
     }
-    printf("%p\n",(void*)proceeded);
     proceeded = list->active->LPtr; 
     if (i!=3)
     {
-        printf("=chyba %d\n",i);
         return IFJ_ERR_SYNTAX;
     }
     if (proceeded->content->id == IFJ_T_RB)
@@ -75,7 +72,7 @@ int work(Stack_t* stack, TokenList* list)
             expression->RPtr = proceeded->RPtr;
             proceeded->RPtr->LPtr = expression;
             l_lb->LPtr->RPtr = expression;
-            printf("%d %d %d pppp\n",l_lb->content->id,expression->content->id,proceeded->content->id);
+//            printf("%d %d %d pppp\n",l_lb->content->id,expression->content->id,proceeded->content->id);
             free(l_lb);
             free(proceeded);
             S_pop(stack);
@@ -94,7 +91,7 @@ int work(Stack_t* stack, TokenList* list)
             operator->RPtr = proceeded->RPtr;
             proceeded->RPtr->LPtr = operator;
             l_op->LPtr->RPtr = operator;
-            printf("%d %d %d pppp\n",l_op->content->id,operator->content->id,proceeded->content->id);
+//            printf("%d %d %d pppp\n",l_op->content->id,operator->content->id,proceeded->content->id);
             free(l_op);
             free(proceeded);
             S_pop(stack);
@@ -103,7 +100,6 @@ int work(Stack_t* stack, TokenList* list)
     }
     else
     {
-        printf("chyba6\n");
         return IFJ_ERR_LEXICAL;
     }
     return 0;
@@ -178,17 +174,17 @@ int PSA(TokenList* list)
             printf("terminaal\n");
             continue;
         }*/
-        printf("--->%d<---\n",list->active->content->id);
+//        printf("--->%d<---\n",list->active->content->id);
         if (is_terminal(list->active->content->id)) 
         {
-            printf("terminaal\n");
+//            printf("terminaal\n");
             list->active->is_expression = TRUE;
             TL_ActiveNext(list); // simulacia E -> i
             continue;
         }
         
         left_closest_term = Lclosest_term(list);
-        printf("%d %d %d\n",left_closest_term->id,list->active->content->id,table[left_closest_term->id-2][list->active->content->id-2]);
+//        printf("%d %d %d\n",left_closest_term->id,list->active->content->id,table[left_closest_term->id-2][list->active->content->id-2]);
         switch (table[left_closest_term->id-2][list->active->content->id-2])
         {
             
@@ -208,21 +204,17 @@ int PSA(TokenList* list)
                 TL_ActiveNext(list);
                 continue;
             case 0:            
-                                printf("h?\n");
-
                 return IFJ_ERR_SYNTAX;
                 break;
         }
     }
-    printf("%d\n",S_empty(&stack));
+//    printf("stack empty? %d\n",S_empty(&stack));
     if (!S_empty(&stack) || 
         !(list->first->content->id == IFJ_T_MOD &&
           list->last->content->id == IFJ_T_MOD &&
           list->first->RPtr == list->last->LPtr &&
           list->first != list->last))
     {
-                    printf("chyba\n");
-
         S_dispose(&stack);
         return IFJ_ERR_SYNTAX;
     }
@@ -628,19 +620,19 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         
     } while (token->id != IFJ_T_EOF);
     List_itemPtr tmp = t_list.first;
-    while (tmp != NULL)
+/*    while (tmp != NULL)
     {
         printf("%d ",tmp->content->id);
         tmp = tmp->RPtr;
     }
-    printf("----\n");
+    printf("----\n");*/
     /* FROM THIS PLACE, CALL EXPRESSION SYNTAX CHECK*/
     if ((code = PSA(&t_list)) != 0)
     {
         return code;
     }
-    token = t_list.first->RPtr->content;
-    printf("%d %d %d\n",token->LPtr->id, token->id, token->RPtr->id);
+    token = t_list.first->RPtr->content;    
+//    printf("%d %d %d\n",token->LPtr->id, token->id, token->RPtr->id);
 //    TL_Dispose(&t_list);
     return 0;
 }
