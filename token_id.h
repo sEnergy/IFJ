@@ -32,10 +32,10 @@ enum token_identificators
     IFJ_T_LB, // '('
     IFJ_T_RB,  // ')'
     IFJ_T_MOD, // '$' for PSA         15
-    IFJ_T_EQUAL, // '=='
-    IFJ_T_NOT_EQUAL, // '!='
-    IFJ_T_LSB, // '['
-    IFJ_T_RSB, // ']' 
+    /*IFJ_T_EQUAL,*/ // '=='
+    /*IFJ_T_NOT_EQUAL,*/ // '!='
+    /*IFJ_T_LSB,*/ // '['
+    /*IFJ_T_RSB,*/ // ']' 
     IFJ_T_LCB, // '{'                20
     IFJ_T_RCB, // '}'
     IFJ_T_SEP, // ','
@@ -50,7 +50,7 @@ enum token_identificators
     // assing & comparison
 
 
-    IFJ_T_SEMICOLON,
+    IFJ_T_SEMICOLON, //;
     IFJ_T_EOF //                    30
 };
 

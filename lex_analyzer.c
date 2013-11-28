@@ -107,10 +107,10 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                 token->id = IFJ_T_MUL;
                 return 0;
                 break;
-            case '%':
+            /*case '%':
                 token->id = IFJ_T_MOD;
                 return 0;
-                break;
+                break;*/
             case '(':
                 token->id = IFJ_T_LB;
                 return 0;
@@ -119,14 +119,14 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                 token->id = IFJ_T_RB;
                 return 0;
                 break;
-            case '[':
+            /*case '[':
                 token->id = IFJ_T_LSB;
                 return 0;
                 break;
             case ']':
                 token->id = IFJ_T_RSB;
                 return 0;
-                break;
+                break;*/
             case '{':
                 token->id = IFJ_T_LCB;
                 return 0;
@@ -169,52 +169,8 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                     //check corectness of variable
                     case '$':
                     {
-                        //save $ and check if next char is alpha
-                        if (write_c(buffer, c) == IFJ_ERR_INTERNAL)
-                        {
-                            return IFJ_ERR_INTERNAL;
-                        }
+                        return IFJ_ERR_LEXICAL;
 
-                        c = fgetc(input);
-
-                        if (isalpha(c) || c == '_')
-                        {
-                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
-                            {
-                                return IFJ_ERR_INTERNAL;
-                            }
-                        }
-                        else
-                        {
-                            return IFJ_ERR_LEXICAL;
-                        }
-                        //save all alpha=numeric characters
-                        c = fgetc(input);
-                        while(isalnum(c) || c == '_')
-                        {
-                            if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
-                            {
-                                return IFJ_ERR_INTERNAL;
-                            }
-
-                            c = fgetc(input);
-                        }
-                        /*end of string - ' " '
-                         * end of variable - white character
-                         * or lexical error
-                         */
-                        if (c == '"')
-                        {
-                            token->id = IFJ_T_STRING;
-                            return 0;
-                        }
-                        else if(isspace(c))
-                        {
-                            ungetc(c, input);
-                            c = '"';
-                        }
-                        else
-                            return IFJ_ERR_LEXICAL;
                     } break; //end of variable
 
                     //escape sequence...c = '"' means starting " case again
@@ -243,7 +199,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                               } break;
                               case '"':
                               {
-                                if (write_c(buffer,'"') == IFJ_ERR_INTERNAL)
+                                if (write_c(buffer,'\"') == IFJ_ERR_INTERNAL)
                                 {
                                     return IFJ_ERR_INTERNAL;
                                 }
@@ -365,9 +321,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                         }
                         else
                         {
-                            token->id = IFJ_T_NOT_EQUAL;
-                            ungetc(c, input);
-                            return 0;
+                            return IFJ_ERR_LEXICAL;
                         }
                     }
                     else
@@ -390,9 +344,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                         }
                         else
                         {
-                            token->id = IFJ_T_EQUAL;
-                            ungetc(c, input);
-                            return 0;
+                            return IFJ_ERR_LEXICAL;
                         }
                     }
                     else
