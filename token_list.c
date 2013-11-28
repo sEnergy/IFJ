@@ -16,7 +16,7 @@
 #include "errors.h"
 #include "token_list.h"
 #include "syntax_analyzer.h"
-/*
+
 // stack init
 void S_init(Stack_t* S)
 {
@@ -28,7 +28,7 @@ bool S_empty(Stack_t* S)
     return (S->Top == NULL);
 }
 // insert token
-int S_insert(Stack_t* S, TokenPtr token)
+int S_push(Stack_t* S, TokenPtr token)
 {
     Stack_itemPtr new_item = (Stack_itemPtr) malloc(sizeof(struct Stack_item));
     if (new_item == NULL)
@@ -38,20 +38,31 @@ int S_insert(Stack_t* S, TokenPtr token)
     new_item->content = token;
     new_item->next = S->Top;
     S->Top = new_item;
+    return TRUE;
 }
 // top&pop
-void S_top_pop(Stack_t* S, TokenPtr* token)
+TokenPtr S_top_pop(Stack_t* S)
 {
-    if (S_Empty(S)) return -1;
-    *token = S->Top->content;
+    TokenPtr token = S->Top->content;
     Stack_itemPtr tmp = S->Top;
     S->Top = S->Top->next;
-    free(S->Top);
+    free(tmp);
+    return token;
+}
+TokenPtr S_top(Stack_t* S)
+{
+    return S->Top->content;
+}
+TokenPtr S_pop(Stack_t* S)
+{
+    Stack_itemPtr tmp = S->Top;
+    S->Top = S->Top->next;
+    free(tmp);
 }
 // dispose
 void S_dispose(Stack_t* S)
 {
-    if (S_empty(s)) return;
+    if (S_empty(S)) return;
     Stack_itemPtr tmp = S->Top;
     Stack_itemPtr next = S->Top->next;
     while (tmp != NULL)
@@ -64,7 +75,7 @@ void S_dispose(Stack_t* S)
         }
     }
 }
-*/
+
 // initializes token list
 void TL_Init (TokenList *List)
 {
@@ -172,21 +183,12 @@ void TL_ActivePrev (TokenList *List)
     return;
 }
 
-/* sets *id to id of active token if possilbe; else sets *id to -1
-void TL_GetID (TokenList *List, unsigned int *id)
+// sets *id to id of active token if possilbe; else sets *id to -1
+TokenPtr TL_GetID (TokenList *List)
 {
-    if (List->active != NULL)
-    {
-        *id = List->active->id;
-    }
-    else
-    {
-        *id = -1;
-    }
-
-    return;
+    return (List->active != NULL)?List->active->content:NULL;
 }
-*/
+
 /*
  * Sets *content to pointer to content of active token if possilbe; else sets
  * *content to NULL

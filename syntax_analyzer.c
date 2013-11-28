@@ -38,7 +38,181 @@ TokenPtr new_token(void)
     return token;
 }
     
-
+//jebnut ma ide z tohto
+int work(Stack_t* stack, TokenList* list)
+{
+    List_itemPtr proceeded = list->active->LPtr;
+    int i = 1;
+    while(proceeded != NULL && proceeded->content != S_top(stack))
+    {
+    	i++;
+    	proceeded = proceeded->LPtr;
+    	if (i>=6)
+    	{
+    		return IFJ_ERR_LEXICAL;
+    	}
+    }
+    proceeded = list->active->LPtr;
+    if (proceeded->content->id == IFJ_T_RB)
+    {    
+    	if (i!=5)
+    	{
+    		return IFJ_ERR_LEXICAL;
+    	}
+    	List_itemPtr r_op = proceeded->LPtr;
+    	List_itemPtr operator = r_op->LPtr;
+    	List_itemPtr l_op = r_op->LPtr;
+    	List_itemPtr l_br = r_op->LPtr;
+    	if (is_terminal(r_op->content->id) && l_br->content->id == IFJ_T_LB
+    		&& is_terminal(l_op->content->id) && is_operator(operator->content->id))
+    	{
+    		operator->content->LPtr = l_op->content;
+    		operator->content->RPtr = r_op->content;
+    		operator->LPtr = l_br->LPtr;
+    		operator->RPtr = proceeded->RPtr;
+    		proceeded->RPtr->LPtr = operator;
+    		l_br->LPtr->RPtr = operator;
+    		free(l_op);
+    		free(r_op);
+    		free(proceeded);
+    		free(l_br);
+            S_pop(stack);
+            S_pop(stack);
+            S_pop(stack);
+    	}
+    	else
+    	{
+    		return IFJ_ERR_LEXICAL;
+    	}
+    }
+    else if (is_terminal(proceeded->content->id))
+    {
+    	if (i!=3)
+    	{
+    		return IFJ_ERR_LEXICAL;
+    	}
+    	List_itemPtr operator = proceeded->LPtr;
+    	List_itemPtr l_op = operator->LPtr;
+    	if (is_terminal(proceeded->content->id) && 
+    		is_operator(operator->content->id))
+    	{
+    		operator->content->LPtr = l_op->content;
+    		operator->content->RPtr = proceeded->content;
+    		operator->LPtr = l_op->LPtr;
+    		operator->RPtr = proceeded->RPtr;
+    		proceeded->RPtr->LPtr = operator;
+    		l_op->LPtr->RPtr = operator;
+    		free(l_op);
+    		free(proceeded);
+            S_pop(stack);
+    	}
+    	else
+    	{
+    		return IFJ_ERR_LEXICAL;
+    	}
+    }
+    else
+    {
+    	return IFJ_ERR_LEXICAL;
+    }
+    return 0;
+}
+    	
+    			
+    
+int PSA(TokenList* list)
+{
+    Stack_t stack;
+    TokenPtr start;
+    TokenPtr end;
+    TokenPtr stack_top;
+    int code;
+    
+    
+    S_init(&stack);
+    int table[14][14] = 
+    {
+      // false - 0     < - 1      > - 2      = - 3        succes - 4
+      
+// input  *   /   +   -   .   <   >  <=  >=  === !==  (   )   $  
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // *
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // /
+        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // +
+        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // -
+        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // .
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // <
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // >
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // <=
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // >=
+        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2}, // ===
+        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2}, // !==
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 3 , 0}, // (
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 2 , 2}, // )
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 0 , 4}, // $
+    };
+    if((start = new_token()) == NULL)
+    {
+    	return IFJ_ERR_INTERNAL;
+    }
+    if((end = new_token()) == NULL)
+    {
+    	free(end);
+    	return IFJ_ERR_INTERNAL;
+    }
+    start->id = IFJ_T_MOD;
+    end->id = IFJ_T_MOD;
+    
+    TL_Insert_Last(list,end);
+    TL_Insert_First(list,start);
+    S_push(&stack,start);
+    TL_ActiveReset(list);
+    TL_ActiveNext(list);
+    
+    
+    while (!(S_top(&stack) != start && TL_GetID(list) != end))
+    {
+    	TokenPtr input = TL_GetID(list);
+        if (is_terminal(input->id)) 
+        {
+            TL_ActiveNext(list); // simulacia E -> i
+            continue;
+        }
+    	stack_top = S_top(&stack);
+        switch (table[stack_top->id-2][list->active->content->id-2])
+        {
+            
+            case 4:
+                break;
+            case 3:
+    			TL_ActiveNext(list);
+    			break;
+            case 2:
+                if ((code = work(&stack,list)) != 0)
+                {
+                    return IFJ_ERR_LEXICAL;
+                }
+                break;
+            case 1:
+                S_push(&stack,list->active->content);
+                TL_ActiveNext(list);
+                break;
+            case 0:
+                return IFJ_ERR_SYNTAX;
+                break;
+        }
+    }
+    S_pop(&stack);
+    if (!S_empty(&stack) || 
+        !(list->first->content->id == IFJ_T_MOD &&
+          list->last->content->id == IFJ_T_MOD &&
+          list->first->RPtr == list->last->LPtr &&
+          list->first != list->last))
+    {
+        S_dispose(&stack);
+        return IFJ_ERR_LEXICAL;
+    }
+    return 0;
+}
 // initicalizes buffer before first use
 int buffer_init(BUFFER_STRUCT buffer)
 {
@@ -141,6 +315,7 @@ int syntax_analyzer (char* input_filename)
 
     // start syntax analyze itself
     code = check_syntax(input, token, token_content);
+    
     // free all allocated memory, close file
     fclose(input);
     free(token_content->data);
@@ -163,7 +338,6 @@ int check_syntax (FILE *input, TokenPtr token, BUFFER_STRUCT big_string)
         {
             return code;
         }
-
         if (token->id == IFJ_T_KEYWORD)
         {
             if (strcmp(&big_string->data[token->content], "function\0") == 0) // function declaration
@@ -197,7 +371,6 @@ int check_syntax (FILE *input, TokenPtr token, BUFFER_STRUCT big_string)
             {
                 return code;
             }
-            printf("%d \n",token->id);
             
         }
         else

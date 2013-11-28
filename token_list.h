@@ -18,7 +18,7 @@
 // stack item
 typedef struct Stack_item{
         struct Token* content;
-        struct stack_item* next;
+        struct Stack_item* next;
     } *Stack_itemPtr;
 // stack
 typedef struct{
@@ -45,7 +45,13 @@ typedef struct {
     List_itemPtr active; // pointer to active token
     List_itemPtr last; // pointer to last token
 } TokenList;
-
+void S_init(Stack_t* S);
+bool S_empty(Stack_t* S);
+int S_push(Stack_t* S, TokenPtr token);
+TokenPtr S_top_pop(Stack_t* S);
+TokenPtr S_top(Stack_t* S);
+TokenPtr S_pop(Stack_t* S);
+void S_dispose(Stack_t* S);
 // initializes token list
 void TL_Init (TokenList *List);
 
@@ -68,7 +74,7 @@ void TL_ActiveNext (TokenList *List);
 void TL_ActivePrev (TokenList *List);
 
 // sets *id to id of active token if possilbe; else sets *id to -1
-void TL_GetID (TokenList *List, unsigned int *id);
+TokenPtr TL_GetID (TokenList *List);
 
 /*
  * Sets *content to pointer to content of active token if possilbe; else sets
