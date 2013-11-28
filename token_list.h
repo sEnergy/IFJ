@@ -36,6 +36,7 @@ typedef struct Token {
 // list item
 typedef struct List_item{
         TokenPtr content;
+        bool is_expression;
         struct List_item* LPtr;
         struct List_item* RPtr;
     }* List_itemPtr;
@@ -45,12 +46,15 @@ typedef struct {
     List_itemPtr active; // pointer to active token
     List_itemPtr last; // pointer to last token
 } TokenList;
+
+
+
 void S_init(Stack_t* S);
 bool S_empty(Stack_t* S);
 int S_push(Stack_t* S, TokenPtr token);
 TokenPtr S_top_pop(Stack_t* S);
 TokenPtr S_top(Stack_t* S);
-TokenPtr S_pop(Stack_t* S);
+void S_pop(Stack_t* S);
 void S_dispose(Stack_t* S);
 // initializes token list
 void TL_Init (TokenList *List);
