@@ -20,6 +20,7 @@
 #include "token_id.h"
 #include "errors.h"
 #include "token_list.h"
+#include "interpreter.h"
 
 //Return pointer to initialized token on heap. Null if internal error.
 TokenPtr new_token(void)
@@ -329,6 +330,15 @@ int syntax_analyzer (char* input_filename)
 
     // start syntax analyze itself
     code = check_syntax(input, token, token_content);
+    
+    
+    // starts interpret
+    /*
+    if (code == 0)
+    {
+		code = interpreter(token_content, token);
+	}
+    */
     
     // free all allocated memory, close file
     fclose(input);

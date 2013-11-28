@@ -22,35 +22,7 @@
 #include "token_id.h"
 #include "errors.h"
 #include "functions.h"
-
-/* *****************************************************************************
-*		THIS FUNCTION WILL BE ERASED WHEN LUBOS COMMITS HIS CHANGES
-*							FOR GCC TO SHUT UP
-*******************************************************************************/
-
-int changeable_token_update(changeable_tokenPtr token, char * new_data)
-{ 
-	if(strlen(token->data) < strlen(new_data))
-	{
-		free(token->data);
-		token->data = malloc (sizeof(strlen(new_data))+1);
-		if(token->data == NULL)
-		{
-			return IFJ_ERR_INTERNAL;	
-		}
-
-	}
-	int i = 0;
-	while(new_data [i] != '\0')
-	{
-		token->data[i] = new_data[i];
-		i++;
-	}
-	token->data[i] = '\0';
-	return 0;
-}
-
-
+#include "interpreter.h"
 
 /* *****************************************************************************
 *									BOOLVAL

@@ -14,20 +14,7 @@
 #define IFJ_FUNCTIONS_INCLUDED
 
 #include "syntax_analyzer.h"
-
-
-
-
-// THIS FUNCTION AND STRUCTURE 
-// WILL BE ERASED AFTER LUBOS COMMITS HIS WORK
-// IT'S JUST FOR GCC TO SHUT UP
-typedef struct changeable_token 
-{
-    unsigned int id;
-    char* data;
-    unsigned long long int position; /* needed for casting keywords */
-} *changeable_tokenPtr;
-int changeable_token_update(changeable_tokenPtr token, char * new_data);
+#include "interpreter.h"
 
 
 // Changes id and data to bool

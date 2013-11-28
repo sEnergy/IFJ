@@ -11,10 +11,11 @@
 
 NAME=ifj_070
 CC=colorgcc
-CFLAGS=-std=c99 -Wall -Wextra  -pedantic -g3 -lm
+CFLAGS=-std=c99 -Wall -Wextra -pedantic -g3
 ARCHIVE_NAME=xvecer17
 
-OBJFILES=main.o syntax_analyzer.o lex_analyzer.o ial.o token_list.o functions.o
+OBJFILES=main.o syntax_analyzer.o lex_analyzer.o ial.o token_list.o \
+		 functions.o interpreter.o
 
 VGPARAMS=--tool=memcheck --leak-check=yes -v --show-reachable=yes \
 		 --track-origins=yes --trace-children=yes --show-possibly-lost=yes
@@ -44,7 +45,7 @@ dep:
 
 # linking object files in one executable file
 $(NAME): $(OBJFILES)
-	$(CC) $(CFLAGS) $(OBJFILES) -o $@
+	$(CC) $(CFLAGS) $(OBJFILES) -lm -o $@
 
 #run
 run:
