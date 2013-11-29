@@ -12,6 +12,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdarg.h>
+#include <ctype.h>
+#include <math.h>
 
 #include "errors.h"
 #include "token_list.h"
@@ -39,7 +43,7 @@ int changeable_token_update(changeable_tokenPtr change_token, char * new_data)
     if(strlen(change_token->data) < strlen(new_data)) 
     { 
         free(change_token->data); 
-        change_token->data = malloc (sizeof(strlen(new_data))+1); 
+        change_token->data = malloc (sizeof(char)* (strlen(new_data)+1)); 
         if(change_token->data == NULL) 
         { 
             return IFJ_ERR_INTERNAL; 
@@ -58,7 +62,7 @@ int changeable_token_update(changeable_tokenPtr change_token, char * new_data)
 int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, BUFFER_STRUCT buffer)
 {
     change_token->id = token->id;
-    if ((change_token->data = malloc(sizeof(strlen(&(buffer->data[token->content]))) + 1)) == NULL)
+    if ((change_token->data = malloc(sizeof(char) * (strlen(&(buffer->data[token->content])) + 1))) == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
@@ -78,6 +82,8 @@ void changeable_token_Destroy (changeable_tokenPtr change_token)
     free(change_token->data);
     free(change_token);
 }
+
+
 
 /*
  * Chooses which function should be used, depends on token_id
@@ -104,53 +110,57 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
             error = var_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_MUL:             // '*'
-            error = operator_function (token, change_token, buffer);
+            error = basic_operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_DIV:             // '/'
-            error = operator_function (token, change_token, buffer);
+            error = basic_operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_PLUS:            // '+'
-            error = operator_function (token, change_token, buffer);
+            error = basic_operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_MIN:             // '-'
-            error = operator_function (token, change_token, buffer);
+            error = basic_operator_function (token, change_token, buffer, hashtable);
             break;
+            /*  under construction
         case IFJ_T_CONC:            // '.'
-            error = operator_function (token, change_token, buffer);
+            error = operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_LESS:            // '<'
-            error = operator_function (token, change_token, buffer);
+            error = operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_GREATER:         // '>'
-            error = operator_function (token, change_token, buffer);
+            error = operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_LESS_EQUAL:      // '<='
-            error = operator_function (token, change_token, buffer);
+            error = operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_GREATER_EQUAL:   // '>='
-            error = operator_function (token, change_token, buffer);
+            error = operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_SUPER_EQUAL:     // '==='
-            error = operator_function (token, change_token, buffer);
+            error = operator_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_NOT_SUPER_EQUAL: // '!=='
-            error = operator_function (token, change_token, buffer);
+            error = operator_function (token, change_token, buffer, hashtable);
             break;
+            */
                 
     /** TO DO
      *  when calling function, i shouldn't forget on creating new hashtable, when returning then free */
     }
-    printf("error = %d token_id = %d \n", error, token->id);    
+    printf("error = %d token_id = %d token_data: %s \n", error, token->id, &(buffer->data[token->content]));    
     
     return error;
 }
 
 
 /*
- * Function that handles operators
+ * Function that handles "*", "+", "-", "/"
  */
-int operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer)
+int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
 {
+    printf("operátor.\n");
+    /* Allocating space for opperands */
     changeable_tokenPtr change_token_left;
     if ((change_token_left = changeable_token_Init()) == NULL)
     {
@@ -159,12 +169,130 @@ int operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_
     changeable_tokenPtr change_token_right;
     if ((change_token_right = changeable_token_Init()) == NULL)
     {
+        free(change_token_left);
         return IFJ_ERR_INTERNAL;
     }
     
-    /**
-     *  lot of work to do
-     **/
+    int error = call_leaf_function (token->LPtr, change_token_left, buffer, hashtable);
+    if (!error)
+    {
+        error = call_leaf_function (token->RPtr, change_token_right, buffer, hashtable);
+    }
+    if (!error)
+    {
+        // start of "*", "+", "-", "/"
+        if (token->id == IFJ_T_MUL || token->id == IFJ_T_PLUS || token->id == IFJ_T_MIN)
+        {
+            // good types
+            if ((change_token_left->id == IFJ_T_INT || change_token_left->id == IFJ_T_DOUBLE) && (change_token_right->id == IFJ_T_INT || change_token_right->id == IFJ_T_DOUBLE))
+            {
+                /* @option int - true if result should be int, false if result should be double */
+                int option_int = (change_token_left->id == IFJ_T_INT && change_token_right->id == IFJ_T_INT) && (!(token->id == IFJ_T_DIV));
+                int operand_1_int;
+                int operand_2_int;
+                int result_int;
+                double operand_1_double;
+                double operand_2_double;
+                double result_double;
+                int length_result;
+                char * result_string;
+                
+                // int and int
+                if (option_int)
+                {
+                    operand_1_int = atoi(change_token_left->data);
+                    operand_2_int = atoi(change_token_right->data);
+                }
+                // double and double, doble and int, int and double
+                else
+                {
+                    operand_1_double = atof(change_token_left->data);
+                    operand_2_double = atof(change_token_right->data);               
+                }
+                int length_left = strlen(change_token_left->data);
+                int length_right = strlen(change_token_right->data);
+                
+                // do the operation
+                if (token->id == IFJ_T_MUL)        // "*"
+                {
+                    if (option_int)
+                    {
+                        result_int = operand_1_int * operand_2_int;
+                    }
+                    else
+                    {
+                        result_double = operand_1_double * operand_2_double;                        
+                    }
+                    length_result = length_left > length_right ? (2 * length_left) : (2 * length_right);
+                } 
+                else if (token->id == IFJ_T_PLUS)  // "+"
+                {
+                    if (option_int)
+                    {
+                        result_int = operand_1_int + operand_2_int;
+                    }
+                    else
+                    {
+                        result_double = operand_1_double + operand_2_double;                        
+                    }            
+                    length_result = length_left > length_right ? (length_left + 1) : (length_right + 1);
+                }
+                else if (token->id == IFJ_T_MIN)  // "-"
+                {
+                    if (option_int)
+                    {
+                        result_int = operand_1_int - operand_2_int;
+                    }
+                    else
+                    {
+                        result_double = operand_1_double - operand_2_double;                        
+                    }           
+                    length_result = length_left > length_right ? (length_left) : (length_right);
+                    
+                }
+                else if (token->id == IFJ_T_DIV)  // "/"
+                {
+                    // first check zero division
+                    if (operand_2_double == 0)
+                    {
+                        changeable_token_Destroy (change_token_left);
+                        changeable_token_Destroy (change_token_right);
+                        return IFJ_ERR_ZERO_DIVISION;
+                    }
+                    else
+                    {
+                        result_double = operand_1_double / operand_2_double;                        
+                    }           
+                    length_result = length_left > length_right ? (length_left) : (length_right);
+                    
+                }
+                result_string = malloc(sizeof(char) * (length_result + 3));
+                // result is int
+                if (option_int)
+                {
+                    sprintf(result_string, "%d", result_int);
+                    change_token->id = IFJ_T_INT;
+                }
+                // result is double
+                else
+                {
+                    sprintf(result_string, "%g", result_double);
+                    change_token->id = IFJ_T_DOUBLE;
+                }
+                // update data
+                error = changeable_token_update(change_token, result_string);
+                free (result_string);
+            }
+            // bad types
+            else
+            {
+                error = IFJ_ERR_TYPE_COMPATIBILITY;
+            }
+        } // end of "*", "+", "-", "/"
+        changeable_token_Destroy (change_token_left);
+        changeable_token_Destroy (change_token_right);
+    }
+    return error;
 }
 
 /* 
@@ -188,8 +316,9 @@ int var_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
         return IFJ_ERR_UNDECLARED_VARIABLE;
     }
     /* if the data are found, get them from the hashtable */
+
     change_token->id = item->type;
-    change_token->data = item->value;
+    changeable_token_update(change_token, item->value);
     
     return error;
 }

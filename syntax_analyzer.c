@@ -323,14 +323,12 @@ int syntax_analyzer (char* input_filename)
     // start syntax analyze itself
     code = check_syntax(input, &token, token_content);
     
-//    printf("%d",token->id);
+    //printf("%d",token->id);
     // starts interpret
-    /*
     if (code == 0)
     {
 		code = interpreter(token_content, token);
 	}
-    */
     
     // free all allocated memory, close file
     fclose(input);

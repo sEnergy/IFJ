@@ -33,7 +33,7 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
 
 int var_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
 int number_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer);
-int operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer);
+int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
 
 int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer);
 

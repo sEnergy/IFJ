@@ -2,5 +2,4 @@
 
 /* Program 1 */
 
-while ($a) {$a=1;}
-
+$a = $b + 3;
