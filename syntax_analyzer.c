@@ -388,6 +388,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
             {
                 return code;
             }
+//            printf("%droot%d %d\n",(*ancestorPtr)->RPtr->LPtr->id,(*ancestorPtr)->RPtr->id,(*ancestorPtr)->RPtr->RPtr->id);
             
         }
         else
@@ -432,7 +433,7 @@ int check_function_declaration (FILE *input, TokenPtr token_old, BUFFER_STRUCT b
     {
         return code;
     }
-    printf("\nfinal %d\n",token_old->LPtr->id);
+//    printf("\nfinal %d\n",token_old->LPtr->id);
 
     return 0;
 }
@@ -620,8 +621,8 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         }
         
     } while (token->id != IFJ_T_EOF);
-//    List_itemPtr tmp = t_list.first;
-/*    while (tmp != NULL)
+/*    List_itemPtr tmp = t_list.first;
+    while (tmp != NULL)
     {
         printf("%d ",tmp->content->id);
         tmp = tmp->RPtr;
@@ -632,7 +633,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
     {
         return code;
     }
-    token = t_list.first->RPtr->content;    
+    *token_oldPtr = t_list.first->RPtr->content;    
 //    printf("%d %d %d\n",token->LPtr->id, token->id, token->RPtr->id);
 //    TL_Dispose(&t_list);
     return 0;
