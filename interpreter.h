@@ -5,7 +5,7 @@
  * Author:              Lubo¹ Vaníèek
  * Encoding:            UTF-8
  *
- * Description:         Implementation of funtions for list of tokens.
+ * Description:         Header file of Interpreter.
  *
 *******************************************************************************/
 
@@ -36,6 +36,7 @@ int var_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
 int number_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer);
 int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
 int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
+int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
 
 int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer);
 
