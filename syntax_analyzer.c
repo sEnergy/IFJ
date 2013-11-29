@@ -65,7 +65,7 @@ int work(Stack_t* stack, TokenList* list)
     }
 //E->(E)
     if (proceeded->content->id == IFJ_T_RB)
-    { 
+    {  
         List_itemPtr expression = proceeded->LPtr;
         List_itemPtr l_lb = expression->LPtr;
         if (expression->is_expression &&
@@ -78,6 +78,10 @@ int work(Stack_t* stack, TokenList* list)
             free(l_lb);
             free(proceeded);
             S_pop(stack);
+        }
+        else
+        {
+            return IFJ_ERR_SYNTAX;
         }
     }
 //E->E operator E
@@ -98,6 +102,10 @@ int work(Stack_t* stack, TokenList* list)
             free(proceeded);
             S_pop(stack);
             operator->is_expression = TRUE;
+        }
+        else
+        {
+            return IFJ_ERR_SYNTAX;
         }
     }
     else
