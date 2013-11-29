@@ -368,6 +368,10 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
              */
             case '$':
                 {
+					if (write_c(buffer,c) == IFJ_ERR_INTERNAL)
+					{
+						return IFJ_ERR_INTERNAL;
+					}
                     c = fgetc(input);
                     if (isalpha(c) || c == '_')
                     {

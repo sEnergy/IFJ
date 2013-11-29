@@ -11,6 +11,7 @@
  *
 *******************************************************************************/
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -101,6 +102,10 @@ int search_substring(char* substring, char* string, int* found)
     *found = -1; /* no match found */
     return EXIT_SUCCESS;
 }
+
+/**********************************************
+ *					HASHTABLE
+ **********************************************/
 
 /*
  * Creates an index into the hashtable.
