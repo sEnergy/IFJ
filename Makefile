@@ -10,8 +10,8 @@
 ################################################################################
 
 NAME=ifj_070
-CC=colorgcc
-CFLAGS=-std=c99 -Wall -Wextra -pedantic -g3
+CC=gcc
+CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
 ARCHIVE_NAME=xvecer17
 
 OBJFILES=main.o syntax_analyzer.o lex_analyzer.o ial.o token_list.o \
