@@ -50,8 +50,8 @@ enum token_identificators
     // assing & comparison
 
 
-    IFJ_T_SEMICOLON, //;
-    IFJ_T_EOF //						25
+    IFJ_T_SEMICOLON, //;		25
+    IFJ_T_EOF //						
 };
 
 #endif

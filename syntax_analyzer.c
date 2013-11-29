@@ -30,7 +30,7 @@ TokenPtr new_token(void)
     {
         return NULL;
     }
-    token->id = -99;
+    token->id = 50;
     token->content = 0;
     token->LPtr = NULL;
     token->RPtr = NULL;
@@ -322,7 +322,7 @@ int syntax_analyzer (char* input_filename)
 
     // start syntax analyze itself
     code = check_syntax(input, &token, token_content);
-    
+//    printf("root%d %d\n",token->id,token->next->id );    
     //printf("%d",token->id);
     // starts interpret
     if (code == 0)
@@ -354,6 +354,11 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
         if ((code = lex_analyzer(input, token, big_string)) != 0)
         {
             return code;
+        }
+//       printf("token %d\n",token->id);
+        if (token->id == IFJ_T_KEYWORD)
+        {
+            return 0;
         }
         if (token->id == IFJ_T_KEYWORD)
         {
@@ -388,8 +393,6 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
             {
                 return code;
             }
-//            printf("%droot%d %d\n",(*ancestorPtr)->RPtr->LPtr->id,(*ancestorPtr)->RPtr->id,(*ancestorPtr)->RPtr->RPtr->id);
-            
         }
         else
         {
@@ -399,8 +402,8 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
         {
             return IFJ_ERR_INTERNAL;
         }
-        ancestorPtr = &token->next;
-        token->next = token_new;
+        (*ancestorPtr)->next = token_new;
+        ancestorPtr = &(*ancestorPtr)->next;
         token = token_new;
     }
 }
@@ -621,6 +624,10 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         }
         
     } while (token->id != IFJ_T_EOF);
+    if (token->id == IFJ_T_EOF)
+    {
+        return IFJ_ERR_SYNTAX;
+    }
 /*    List_itemPtr tmp = t_list.first;
     while (tmp != NULL)
     {
@@ -632,6 +639,10 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
     if ((code = PSA(&t_list)) != 0)
     {
         return code;
+    }
+    if (token->id == IFJ_T_EOF)
+    {
+        (*token_oldPtr)->next = token;
     }
     *token_oldPtr = t_list.first->RPtr->content;    
 //    printf("%d %d %d\n",token->LPtr->id, token->id, token->RPtr->id);
