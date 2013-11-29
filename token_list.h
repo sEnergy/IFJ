@@ -48,13 +48,25 @@ typedef struct {
 } TokenList;
 
 
-
+// initializes stack
 void S_init(Stack_t* S);
+
+// return 1, if stack is empty, 0 otherwise
 bool S_empty(Stack_t* S);
+
+//push token tp the stack
 int S_push(Stack_t* S, TokenPtr token);
+
+//return top item's contet of the stack and free item
 TokenPtr S_top_pop(Stack_t* S);
+
+//return top item's content if the stack
 TokenPtr S_top(Stack_t* S);
+
+//remove top item of the stack
 void S_pop(Stack_t* S);
+
+//remove all item of the stack
 void S_dispose(Stack_t* S);
 // initializes token list
 void TL_Init (TokenList *List);

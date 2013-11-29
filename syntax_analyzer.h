@@ -22,6 +22,15 @@
 #define TRUE 1
 #define FALSE 0
 
+//generate AST using PSA table for defined rules
+int PSA(TokenList* list);
+
+//Return left-closest term to active on input
+TokenPtr Lclosest_term(TokenList* list);
+
+//apply rule for PSA
+int work(Stack_t* stack, TokenList* list);
+
 // initicalizes buffer before first use
 int buffer_init(BUFFER_STRUCT buffer);
 

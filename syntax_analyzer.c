@@ -40,18 +40,20 @@ TokenPtr new_token(void)
 }
     
 //jebnut ma ide z tohto
+
+/*
+ * Function apply defined rules on input and check errors.
+ */ 
 int work(Stack_t* stack, TokenList* list)
 {
     List_itemPtr proceeded = list->active->LPtr;
-//    printf("||%d\n",proceeded->content->id);
     int i = 0;
+// There are rules only for 3 tokens.
     while(proceeded != NULL && proceeded->content != S_top(stack))
     {
         i++;
         proceeded = proceeded->LPtr;
-        
-//    printf("||%d\n",proceeded->content->id);
-        if (i>=6)
+        if (i>3)
         {
             return IFJ_ERR_SYNTAX;
         }
@@ -61,6 +63,7 @@ int work(Stack_t* stack, TokenList* list)
     {
         return IFJ_ERR_SYNTAX;
     }
+//E->(E)
     if (proceeded->content->id == IFJ_T_RB)
     { 
         List_itemPtr expression = proceeded->LPtr;
@@ -72,12 +75,12 @@ int work(Stack_t* stack, TokenList* list)
             expression->RPtr = proceeded->RPtr;
             proceeded->RPtr->LPtr = expression;
             l_lb->LPtr->RPtr = expression;
-//            printf("%d %d %d pppp\n",l_lb->content->id,expression->content->id,proceeded->content->id);
             free(l_lb);
             free(proceeded);
             S_pop(stack);
         }
     }
+//E->E operator E
     else if(proceeded->is_expression)
     {    
         List_itemPtr operator = proceeded->LPtr;
@@ -91,7 +94,6 @@ int work(Stack_t* stack, TokenList* list)
             operator->RPtr = proceeded->RPtr;
             proceeded->RPtr->LPtr = operator;
             l_op->LPtr->RPtr = operator;
-//            printf("%d %d %d pppp\n",l_op->content->id,operator->content->id,proceeded->content->id);
             free(l_op);
             free(proceeded);
             S_pop(stack);
@@ -104,7 +106,9 @@ int work(Stack_t* stack, TokenList* list)
     }
     return 0;
 }
-        
+/*
+ * Function return left-closest from active TERMINAL on input
+ */         
 TokenPtr Lclosest_term(TokenList* list)
 {
     List_itemPtr proceeded = list->active->LPtr;
@@ -114,7 +118,10 @@ TokenPtr Lclosest_term(TokenList* list)
     }
     return proceeded->content;
 }
-    
+/* 
+ * Function perform precedence syntax analyze and create abstract syntax 
+ * tree of the operations, that are ordered accoring to precedence table
+*/
 int PSA(TokenList* list)
 {
     Stack_t stack;
@@ -154,9 +161,9 @@ int PSA(TokenList* list)
         free(end);
         return IFJ_ERR_INTERNAL;
     }
+// Create start and end terminals and joint it to the input.
     start->id = IFJ_T_MOD;
     end->id = IFJ_T_MOD;
-    
     TL_Insert_Last(list,end);
     TL_Insert_First(list,start);
     TL_ActiveReset(list);
@@ -167,24 +174,16 @@ int PSA(TokenList* list)
         {
             break;
         }
-        /*
-        printf("-->%d<--\n",input->id);
-        if (list->active->is_expression == TRUE) 
-        {
-            printf("terminaal\n");
-            continue;
-        }*/
-//        printf("--->%d<---\n",list->active->content->id);
+// Simulation of the rule E->i
         if (is_terminal(list->active->content->id)) 
         {
-//            printf("terminaal\n");
             list->active->is_expression = TRUE;
-            TL_ActiveNext(list); // simulacia E -> i
+            TL_ActiveNext(list);
             continue;
         }
-        
+// Lookup rule for left-closest TERMINAL on the input and actual terminal on the input.
+// There is -2 in in indexes due to starting operator tokens on position 2 in enum.       
         left_closest_term = Lclosest_term(list);
-//        printf("%d %d %d\n",left_closest_term->id,list->active->content->id,table[left_closest_term->id-2][list->active->content->id-2]);
         switch (table[left_closest_term->id-2][list->active->content->id-2])
         {
             
@@ -200,6 +199,7 @@ int PSA(TokenList* list)
                 }
                 continue;
             case 1:
+// Stack is stopper. < character in slides.
                 S_push(&stack,left_closest_term);
                 TL_ActiveNext(list);
                 continue;
@@ -208,14 +208,14 @@ int PSA(TokenList* list)
                 break;
         }
     }
-//    printf("stack empty? %d\n",S_empty(&stack));
+// Structure should have one exact formant at the end.
     if (!S_empty(&stack) || 
         !(list->first->content->id == IFJ_T_MOD &&
           list->last->content->id == IFJ_T_MOD &&
           list->first->RPtr == list->last->LPtr &&
           list->first != list->last))
     {
-        S_dispose(&stack);
+//        S_dispose(&stack);
         return IFJ_ERR_SYNTAX;
     }
     return 0;
@@ -348,14 +348,12 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
     TokenPtr token = *token_oldPtr;
     TokenPtr token_new = NULL;
     TokenPtr* ancestorPtr = token_oldPtr;
-//    TokenPtr token = *first_token;
     while (1)
     {
         if ((code = lex_analyzer(input, token, big_string)) != 0)
         {
             return code;
         }
-//       printf("token %d\n",token->id);
         if (token->id == IFJ_T_KEYWORD)
         {
             return 0;
@@ -628,13 +626,6 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
     {
         return IFJ_ERR_SYNTAX;
     }
-/*    List_itemPtr tmp = t_list.first;
-    while (tmp != NULL)
-    {
-        printf("%d ",tmp->content->id);
-        tmp = tmp->RPtr;
-    }
-    printf("----\n");*/
     /* FROM THIS PLACE, CALL EXPRESSION SYNTAX CHECK*/
     if ((code = PSA(&t_list)) != 0)
     {
@@ -645,7 +636,6 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         (*token_oldPtr)->next = token;
     }
     *token_oldPtr = t_list.first->RPtr->content;    
-//    printf("%d %d %d\n",token->LPtr->id, token->id, token->RPtr->id);
 //    TL_Dispose(&t_list);
     return 0;
 }
@@ -893,8 +883,6 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
 {
     int code;
 
-    // printf("\npre- token ID: %d", *token);
-
     TokenPtr token = NULL;
     TokenPtr token_next = NULL;
     TokenPtr* ancestorPtr = token_oldPtr;
@@ -909,7 +897,6 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
     }
     else if (token->id == IFJ_T_LCB) // '{' - start of scope
     {
-//        printf("overeni scope: \n");
         if ((code = lex_analyzer(input, token, big_string)) != 0)
         {
             return code;
@@ -935,7 +922,6 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
             }
             else
             {
-//                printf("overeni statement: \n");
                 if((code = check_statement (input, ancestorPtr, big_string)) != 0)
                 {
                     return code;
@@ -960,7 +946,6 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
     }
     else // scope did not start with '}'
     {
-        //printf("token ID: %d", *token);
         return IFJ_ERR_SYNTAX;
     }
 
