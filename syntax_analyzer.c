@@ -585,8 +585,8 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
             }
         }
         // if valid token (literal or variable) ir read, save it to thel list
-        else if (is_operator(token->id) || is_terminal(token->id)
-            || token->id == IFJ_T_RB || token->id == IFJ_T_LB)
+        else if ((is_operator(token->id) || is_terminal(token->id)
+            || token->id == IFJ_T_RB || token->id == IFJ_T_LB) && token->id != IFJ_T_ASSIGN)
         {
             if (token->id == IFJ_T_LB)
             {
