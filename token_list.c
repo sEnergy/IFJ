@@ -125,6 +125,7 @@ int TL_Insert_Last (TokenList *List, TokenPtr token)
     }
 
     new->content = token;
+    new->is_expression = FALSE;
     
 
     if (List->last == NULL)

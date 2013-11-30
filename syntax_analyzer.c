@@ -20,7 +20,7 @@
 #include "token_id.h"
 #include "errors.h"
 #include "token_list.h"
-#include "interpreter.h"
+//#include "interpreter.h"
 
 //Return pointer to initialized token on heap. Null if internal error.
 TokenPtr new_token(void)
@@ -335,7 +335,7 @@ int syntax_analyzer (char* input_filename)
     // starts interpret
     if (code == 0)
     {
-		code = interpreter(token_content, token);
+//		code = interpreter(token_content, token);
 	}
     
     // free all allocated memory, close file
@@ -361,10 +361,6 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
         if ((code = lex_analyzer(input, token, big_string)) != 0)
         {
             return code;
-        }
-        if (token->id == IFJ_T_KEYWORD)
-        {
-            return 0;
         }
         if (token->id == IFJ_T_KEYWORD)
         {
@@ -586,7 +582,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
             }
             else // empty -> SYNTAX ERROR
             {
-                TL_Dispose(&t_list);
+//                TL_Dispose(&t_list);
                 return IFJ_ERR_SYNTAX;
             }
         }
