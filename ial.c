@@ -218,7 +218,7 @@ hashtable_item* create_item_hashtable (char* string, int type, char* value)
  */
 hashtable_item* search_hashtable (hashtable_item** hashtable, char* string)
 {
-    /* using the hash function to get an index the to hashtable */
+    /* using the hash function to get an index to the hashtable */
     unsigned int index = hash_function (string);
     
     hashtable_item* searched_item = hashtable[index];

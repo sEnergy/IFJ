@@ -36,6 +36,7 @@ typedef struct htable_item
 /*
  * Function prototypes
  */
+unsigned int hash_function(const char *string);
 hashtable_item** hashtable_init (void);
 int insert_item_hashtable (hashtable_item** hashtable, char* string, int type, char* value);
 hashtable_item* create_item_hashtable (char* string, int type, char* value);
