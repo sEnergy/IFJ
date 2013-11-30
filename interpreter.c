@@ -5,7 +5,7 @@
  * Author:              Lubo¹ Vaníèek
  * Encoding:            UTF-8
  *
- * Description:         Implementation of funtions for list of tokens.
+ * Description:         Source file of Interpreter.
  *
 *******************************************************************************/
 
@@ -141,32 +141,252 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
         case IFJ_T_CONC:            // '.'
             error = concatenate_function (token, change_token, buffer, hashtable);
             break;
-            /*  under construction
         case IFJ_T_LESS:            // '<'
-            error = operator_function (token, change_token, buffer, hashtable);
+            error = boolean_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_GREATER:         // '>'
-            error = operator_function (token, change_token, buffer, hashtable);
+            error = boolean_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_LESS_EQUAL:      // '<='
-            error = operator_function (token, change_token, buffer, hashtable);
+            error = boolean_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_GREATER_EQUAL:   // '>='
-            error = operator_function (token, change_token, buffer, hashtable);
+            error = boolean_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_SUPER_EQUAL:     // '==='
-            error = operator_function (token, change_token, buffer, hashtable);
+            error = boolean_function (token, change_token, buffer, hashtable);
             break;
         case IFJ_T_NOT_SUPER_EQUAL: // '!=='
-            error = operator_function (token, change_token, buffer, hashtable);
+            error = boolean_function (token, change_token, buffer, hashtable);
             break;
-            */
                 
     /** TO DO
      *  when calling function, i shouldn't forget on creating new hashtable, when returning then free */
     }    
     
     return error;
+}
+
+int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
+{
+    /* Allocating space for opperands */
+    changeable_tokenPtr change_token_left;
+    if ((change_token_left = changeable_token_Init()) == NULL)
+    {
+        return IFJ_ERR_INTERNAL;
+    }
+    changeable_tokenPtr change_token_right;
+    if ((change_token_right = changeable_token_Init()) == NULL)
+    {
+        return IFJ_ERR_INTERNAL;
+    }
+    int error = call_leaf_function (token->LPtr, change_token_left, buffer, hashtable);
+    if (!error)
+    {
+        error = call_leaf_function (token->RPtr, change_token_right, buffer, hashtable);
+    }
+    if (!error)
+    {
+        int equal = 0;
+        int less = 0;
+        int greater = 0;
+        int error = 0;
+        //different token type
+        if ((change_token_left->id != change_token_right->id))
+        {
+            error = IFJ_ERR_TYPE_COMPATIBILITY;               
+        }
+        //same token type
+        else
+        { 
+            if (change_token_left->id == IFJ_T_KEYWORD)
+            {
+                // null
+                if (strcmp(change_token_left->data, "null") == 0)
+                {
+                    if (strcmp(change_token_right->data, "null") == 0)
+                    {
+                        equal = 1;
+                    }
+                    else
+                    {
+                        error = IFJ_ERR_TYPE_COMPATIBILITY; 
+                    }
+                }
+                // boolean
+                else if (strcmp(change_token_left->data, "true") == 0)
+                {
+                    if (strcmp(change_token_right->data, "true") == 0)
+                    {
+                        equal = 1;
+                    }
+                    else if (strcmp(change_token_right->data, "false") == 0)
+                    {
+                        greater = 1;
+                    }
+                    else // different types
+                    {
+                        error = IFJ_ERR_TYPE_COMPATIBILITY;
+                    }
+                }
+                else if (strcmp(change_token_left->data, "false") == 0)
+                {
+                    if (strcmp(change_token_right->data, "false") == 0)
+                    {
+                        equal = 1;
+                    }
+                    else if (strcmp(change_token_right->data, "true") == 0)
+                    {
+                        less = 1;
+                    }
+                    else
+                    {
+                        error = IFJ_ERR_TYPE_COMPATIBILITY;
+                    }
+                }
+                // different types
+                else
+                {
+                    error = IFJ_ERR_TYPE_COMPATIBILITY;
+                }
+            } // end of keyword
+            //string
+            else if (change_token_left->id == IFJ_T_STRING)
+            {
+                int result = strcmp(change_token_left->data, change_token_right->data);
+                if (result == 0)
+                {
+                    equal = 1;
+                }
+                else if (result > 0)
+                {
+                    greater = 1;
+                }
+                else
+                {
+                    less = 1;
+                }
+            }
+            //int
+            else if (change_token_left->id == IFJ_T_INT)
+            {
+                int operand_1 = atoi(change_token_left->data);
+                int operand_2 = atoi(change_token_right->data);
+                if (operand_1 == operand_2)
+                {
+                    equal = 1;
+                }
+                else if (operand_1 > operand_2)
+                {
+                    greater = 1;
+                }
+                else
+                {
+                    less = 1;
+                }
+            }
+            //double
+            else
+            {
+                double operand_1 = atof(change_token_left->data);
+                double operand_2 = atof(change_token_right->data);
+                if (operand_1 == operand_2)
+                {
+                    equal = 1;
+                }
+                else if (operand_1 > operand_2)
+                {
+                    greater = 1;
+                }
+                else
+                {
+                    less = 1;
+                }           
+            }
+        } //end of same token type
+        
+        //result will be always bool
+        change_token->id = IFJ_T_KEYWORD;
+        if (!error)
+        {
+            switch (token->id) 
+            {
+                case IFJ_T_LESS:            // '<'
+                    if (less)
+                    {
+                        error = changeable_token_update(change_token, "true");
+                    }
+                    else
+                    {
+                        error = changeable_token_update(change_token, "false");    
+                    }
+                    break;
+                case IFJ_T_GREATER:         // '>'
+                    if (greater)
+                    {
+                        error = changeable_token_update(change_token, "true");
+                    }
+                    else
+                    {
+                        error = changeable_token_update(change_token, "false");    
+                    }
+                    break;
+                case IFJ_T_LESS_EQUAL:      // '<='
+                    if (less || equal)
+                    {
+                        error = changeable_token_update(change_token, "true");
+                    }
+                    else
+                    {
+                        error = changeable_token_update(change_token, "false");    
+                    }
+                    break;
+                case IFJ_T_GREATER_EQUAL:   // '>='
+                    if (greater || equal)
+                    {
+                        error = changeable_token_update(change_token, "true");
+                    }
+                    else
+                    {
+                        error = changeable_token_update(change_token, "false");    
+                    }
+                    break;
+                case IFJ_T_SUPER_EQUAL:     // '==='
+                    if (equal)
+                    {
+                        error = changeable_token_update(change_token, "true");
+                    }
+                    else
+                    {
+                        error = changeable_token_update(change_token, "false");    
+                    }
+                    break;
+                case IFJ_T_NOT_SUPER_EQUAL: // '!=='
+                    if (!equal)
+                    {
+                        error = changeable_token_update(change_token, "true");
+                    }
+                    else
+                    {
+                        error = changeable_token_update(change_token, "false");    
+                    }
+                    break;
+            }
+        }
+        else if (error == IFJ_ERR_TYPE_COMPATIBILITY)
+        {
+            switch (token->id)
+            {
+                case IFJ_T_SUPER_EQUAL:     // '==='
+                    error = changeable_token_update(change_token, "false");
+                    break;
+                case IFJ_T_NOT_SUPER_EQUAL: // '!=='
+                    error = changeable_token_update(change_token, "true");
+                    break;
+            }
+        }
+    }
+    return error;    
 }
 
 int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
