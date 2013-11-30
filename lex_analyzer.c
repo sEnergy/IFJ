@@ -73,7 +73,6 @@ void buffer_next_token(BUFFER_STRUCT buffer)
 int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
 {
     //zmenit buffer - pro efektivnost
-    buffer_next_token(buffer);
     token->content = buffer->position;
     char c = fgetc(input); // current character
 
@@ -82,7 +81,10 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
         token->id = IFJ_T_EOF;
         return 0;
     }
-
+    
+//    printf("%llu",buffer->position);
+//	for(unsigned int i=0;i<=buffer->max_length;i++) printf("%c",buffer->data[i]);
+//	printf("\n");
     while(1)
     {
         switch(c)
@@ -276,6 +278,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                     case '"':
                     {
                         token->id = IFJ_T_STRING;
+                        buffer_next_token(buffer);
                         return 0;
                     } break;
                 } //end of {\,$,"} switch
@@ -389,6 +392,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                             c = fgetc(input);
                         }
                         ungetc(c, input);
+                        buffer_next_token(buffer);
                         token->id = IFJ_T_VARIALBE;
                         return 0;
                     }
@@ -525,6 +529,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                                     else        //Stays Integer
                                     {
                                         token->id = IFJ_T_INT;
+                                        buffer_next_token(buffer);
                                         ungetc(c,input);
                                         return 0;
                                     }
@@ -554,6 +559,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                                         {
                                             token->id = IFJ_T_DOUBLE;
                                             ungetc(c,input);
+                                            buffer_next_token(buffer);
                                             return 0;
                                         }
                                     }
@@ -608,6 +614,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                                     }
                                     token->id = IFJ_T_DOUBLE;
                                     ungetc(c,input);
+                                    buffer_next_token(buffer);
                                     return 0;
                                 }
                             }
@@ -644,6 +651,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                             // increase index
                             i++;
                         }
+                        buffer_next_token(buffer);
                         return 0;
                     }
                     else
