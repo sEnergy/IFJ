@@ -23,6 +23,7 @@
 #include "errors.h"
 #include "functions.h"
 #include "interpreter.h"
+#include "ial.h"
 
 /* *****************************************************************************
 *									BOOLVAL
@@ -369,4 +370,124 @@ int strval(changeable_tokenPtr token)
 	return error_code;
 }
 
-				/*** God and Chuck Norris approve this shit ***/
+/* *****************************************************************************
+*									STRLEN
+*******************************************************************************/
+
+int str_len(changeable_tokenPtr token)
+{
+	int error_code = 0;
+	if(token->id == IFJ_T_STRING)
+	{
+		token->id = IFJ_T_INT;
+		char *tmp_data = token->data;
+		char *str;
+
+		for(str = tmp_data; *str != '\0'; ++str);
+
+		sprintf(tmp_data,"%ld",(str - tmp_data));
+		error_code = changeable_token_update(token, tmp_data);
+	}
+	else error_code = IFJ_ERR_OTHER_RUNTIME;
+	return error_code;
+}
+
+/* *****************************************************************************
+*									GET_STRING
+*******************************************************************************/
+
+int get_string(changeable_tokenPtr token)
+{
+	int error_code = 0;
+	char *tmp_data;
+	char *realloc_buf;
+	tmp_data = malloc(sizeof(char));
+	if (tmp_data == NULL) return IFJ_ERR_INTERNAL;
+	int i = 0;
+	char znak;
+	
+	while(( znak = getchar()) != '\n')
+	{
+		if(znak == EOF) break;
+		tmp_data[i] = znak;
+
+		realloc_buf = realloc(tmp_data,(i+2)*sizeof(char));
+		if(realloc_buf != NULL)
+		{
+			tmp_data = realloc_buf;
+		}
+		else
+		{
+			free(tmp_data);
+			return IFJ_ERR_INTERNAL;
+		}
+		i++;
+	}
+	tmp_data[i] = '\0';
+
+	token->data = tmp_data;
+	token->id = IFJ_T_STRING;
+	return error_code;
+}
+
+/* *****************************************************************************
+*									PUT_STRING
+*******************************************************************************/
+
+int put_string(int* arg_number, changeable_tokenPtr token)
+{
+	int error_code = 0;
+	changeable_tokenPtr new_token = token;
+	int argc = 0;
+	if (new_token->id == IFJ_T_STRING)
+	{
+		while(token->data != NULL)
+		{
+			if(new_token->id != IFJ_T_STRING) return IFJ_ERR_OTHER_RUNTIME;
+			if(new_token->next_params == NULL) break;
+			new_token = new_token->next_params;
+		}
+
+		new_token = token;
+		while(token->data != NULL)
+		{
+			char *tmp_data = new_token->data;
+			printf("%s",tmp_data);
+			argc++;
+			if(new_token->next_params == NULL) break;
+			new_token = new_token->next_params;
+		}
+		*arg_number = argc;
+	}
+	else error_code = IFJ_ERR_OTHER_RUNTIME;
+	return error_code;
+}
+
+/* *****************************************************************************
+*									SORT_STRING
+*******************************************************************************/
+
+int sort_string(changeable_tokenPtr token)
+{
+	int error_code = 0;
+	if(token->id == IFJ_T_STRING)
+	{
+		int length = strlen(token->data);
+		if(length == 0 || length == 1) return 0;
+	
+		char *tmp_data = token->data;
+		char *out = NULL;
+		if((out = (char*)malloc(sizeof(char) * length + 1)) == NULL) 
+		{
+			return IFJ_ERR_INTERNAL;
+		}
+		merge_sort(tmp_data, out, 0, length - 1);
+		error_code = changeable_token_update(token, tmp_data);
+		free(out);
+	}
+	else error_code = IFJ_ERR_OTHER_RUNTIME;
+	return error_code;
+}
+
+
+				/*** End of file functions.c ***/

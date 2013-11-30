@@ -51,7 +51,6 @@ int search_substring(char* substring, char* string, int *found);
 
 void merge(char string_array[], char output[], int first, int last);
 void merge_sort(char string_array[], char output[], int first, int last);
-void sort_string(char array[]);
 
 #endif
 

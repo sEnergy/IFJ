@@ -369,21 +369,4 @@ void merge(char string_array[], char output[], int first, int last)
     }
 }
 
-// sort_string  - main function for merge sort
-// array        - string to sort
-// automatically allocs and frees space for temporary output array
-// output will be in arrray
-
-void sort_string(char array[])
-{
-    int length = strlen(array);
-    if(length == 0) return;
-    
-    char *temp = NULL;
-    if((temp = (char*)malloc(sizeof(char) * length + 1)) == NULL) return;
-    
-    merge_sort(array, temp, 0, length - 1);
-    free(temp);
-}
-
 /*** End of file ial.c ***/
