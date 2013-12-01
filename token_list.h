@@ -27,7 +27,7 @@ typedef struct{
 // token
 typedef struct Token {
         unsigned int id; // token id - type of token
-        unsigned long long content; // content of token
+        size_t content; // content of token
         struct Token *condition;
         struct Token *next;
         struct Token *RPtr; // pointer to next token

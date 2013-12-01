@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include "lex_analyzer.h"
 #include "token_list.h"
+#include "interpreter.h"
 
 #define IFJ_SYNTAX_DEF_BUFF_SIZE 20
 #define IFJ_OPEN_TAG_SIZE 6
@@ -50,7 +51,7 @@ int syntax_analyzer (char* input_filename);
  * In infitine loop it reads from input source file and checks their order.
  * Only SYNTAX ERROR or EOF breaks cycle (and of course, INTERNAL ERROR).
  */
-int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string);
+int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HTable, BUFFER_STRUCT big_string);
 
 /*
  * This function is called ither with "if", "while" or "variable" token loaded,

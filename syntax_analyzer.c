@@ -294,11 +294,19 @@ int syntax_analyzer (char* input_filename)
     FILE* input;
     BUFFER_STRUCT token_content = NULL; // structure for token data
     TokenPtr token = NULL;
+    function_hashtablePtr* FHTable = NULL;
+    
+    //first token
     if ((token = new_token())==NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
-
+    
+    //initialization of hashtable
+    if ((FHTable = function_hashtable_init()) == NULL)
+    {
+        return IFJ_ERR_INTERNAL;
+    }
     // open source file
     if ((input = fopen(input_filename, "r")) == NULL)
     {
@@ -327,11 +335,8 @@ int syntax_analyzer (char* input_filename)
             return IFJ_ERR_INTERNAL;
         }
     }
-
     // start syntax analyze itself
-    code = check_syntax(input, &token, token_content);
-//    printf("root%d %d\n",token->id,token->next->id );    
-    //printf("%d",token->id);
+    code = check_syntax(input, &token, FHTable, token_content);
     // starts interpret
     if (code == 0)
     {
@@ -350,7 +355,7 @@ int syntax_analyzer (char* input_filename)
  * In infitine loop it reads from input source file and checks their order.
  * Only SYNTAX ERROR or EOF breaks cycle (and of course, INTERNAL ERROR).
  */
-int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
+int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HTable, BUFFER_STRUCT big_string)
 {
     int code;
     TokenPtr token = *token_oldPtr;
@@ -370,6 +375,15 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
                 {
                     return code;
                 }
+                if ((code = function_hashtable_insert(HTable, token, big_string)) != 0)
+                {
+                    return code;
+                }
+                if ((token = new_token())==NULL)
+                {
+                    return IFJ_ERR_INTERNAL;
+                }
+                continue;
             }
             else if ((strcmp(&big_string->data[token->content], "if\0") != 0)
                         && (strcmp(&big_string->data[token->content], "while\0") != 0)
@@ -451,7 +465,15 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
 {
     int code;
     TokenPtr token = NULL;
-    TokenPtr token_new = NULL;
+    
+    //setting number of parameters to zero
+    if ((token = new_token())==NULL)
+    {
+        return IFJ_ERR_INTERNAL;
+    }
+    token->id = IFJ_T_MOD;
+    token->content = 0;
+    token_old->condition = token;
 
     // check, if there is openin brace '('
     if ((token = new_token())==NULL)
@@ -463,7 +485,7 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
         free(token);
         return code;
     }
-    else if (token->id != IFJ_T_LB)
+    if (token->id != IFJ_T_LB)
     {
         free(token);
         return IFJ_ERR_SYNTAX;
@@ -474,58 +496,41 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
         free(token);
         return code;
     }
-    if (token->id == IFJ_T_VARIALBE) // first variable
+    while (1)
     {
-        token_old->condition = token;
-        while (1)
+        if (is_terminal(token->id))
         {
-            if ((token_new = new_token())==NULL)
+            token_old->condition->content++;
+            if ((code = lex_analyzer(input, token, big_string)) != 0)
             {
-                return IFJ_ERR_INTERNAL;
-            }
-            
-            if ((code = lex_analyzer(input, token_new, big_string)) != 0)
-            {
-                free(token_new);
+                free(token);
                 return code;
             }
-            else if (token_new->id == IFJ_T_RB) // legal end of <PARAM-LIST>
-            {
-                free(token_new);
-                break;
-            }           
-            token->next = token_new;
-            token = token_new;
-            /*
-             * <PARAM-LIST> not finished, must be separator
-             * and variable here (then cycle repeats)
-             */
             if (token->id == IFJ_T_SEP)
             {
                 if ((code = lex_analyzer(input, token, big_string)) != 0)
                 {
+                    free(token);
                     return code;
                 }
-                else if (token->id == IFJ_T_VARIALBE)
-                {
-                    continue;
-                }
-                else
+                if (!is_terminal(token->id))
                 {
                     return IFJ_ERR_SYNTAX;
                 }
+                continue;
             }
-            else
+            else if (token->id != IFJ_T_RB)
             {
                 return IFJ_ERR_SYNTAX;
             }
         }
+        else if (token->id != IFJ_T_RB)
+        {
+            return IFJ_ERR_SYNTAX;
+        }
+        break;
     }
-    else if (token->id != IFJ_T_RB)
-    {
-        free(token);
-        return IFJ_ERR_SYNTAX;
-    }
+    free(token);
     return 0;
 }
 
@@ -723,7 +728,7 @@ int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_stri
 {
     int code;
     TokenPtr token = NULL;
-    TokenPtr token_new = NULL;
+    TokenPtr* ancestor = &(token_old->condition);
 
     // check, if there is openin brace '('
     if ((token = new_token())==NULL)
@@ -735,7 +740,7 @@ int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_stri
         free(token);
         return code;
     }
-    else if (token->id != IFJ_T_LB)
+    if (token->id != IFJ_T_LB)
     {
         free(token);
         return IFJ_ERR_SYNTAX;
@@ -746,69 +751,56 @@ int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_stri
         free(token);
         return code;
     }
-    if (token->id == IFJ_T_VARIALBE) // first variable
+    while (1)
     {
-        token_old->condition = token;
-        while (1)
+        if (is_terminal(token->id))
         {
-            if ((token_new = new_token())==NULL)
+            *ancestor = token;
+            ancestor = &(token->next);
+            if ((token = new_token())==NULL)
             {
                 return IFJ_ERR_INTERNAL;
             }
-            
-            if ((code = lex_analyzer(input, token_new, big_string)) != 0)
+            if ((code = lex_analyzer(input, token, big_string)) != 0)
             {
-                free(token_new);
+                free(token);
                 return code;
             }
-            else if (token_new->id == IFJ_T_RB) // legal end of <PARAM-LIST>
-            {
-                break;
-            }           
-            token->next = token_new;
-            token = token_new;
-            /*
-             * <PARAM-LIST> not finished, must be separator
-             * and variable here (then cycle repeats)
-             */
             if (token->id == IFJ_T_SEP)
             {
                 if ((code = lex_analyzer(input, token, big_string)) != 0)
                 {
+                    free(token);
                     return code;
                 }
-                else if (token->id == IFJ_T_VARIALBE)
-                {
-                    continue;
-                }
-                else
+                if (!is_terminal(token->id))
                 {
                     return IFJ_ERR_SYNTAX;
                 }
+                continue;
             }
-            else
+            else if (token->id != IFJ_T_RB)
             {
                 return IFJ_ERR_SYNTAX;
             }
         }
+        else if (token->id != IFJ_T_RB)
+        {
+            return IFJ_ERR_SYNTAX;
+        }
+        break;
+    }       
+    if ((code = lex_analyzer(input, token, big_string)) != 0)
+    {
+        free(token);
+        return code;
     }
-    else if (token->id != IFJ_T_RB)
+    if (token->id != IFJ_T_SEMICOLON)
     {
         free(token);
         return IFJ_ERR_SYNTAX;
     }
-    // ater input param list, there must be semicolon
-    if ((code = lex_analyzer (input, token_new, big_string)) != 0)
-    {
-        free(token_new);
-        return code;
-    }
-    else if (token_new->id != IFJ_T_SEMICOLON)
-    {
-        free(token_new);
-        return IFJ_ERR_SYNTAX;
-    }
-        free(token_new);
+    free(token);
     return 0;
 }
 

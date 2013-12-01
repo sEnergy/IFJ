@@ -19,8 +19,8 @@
 
 typedef struct buffer_struct
 {
-    unsigned long long int max_length;
-    unsigned long long int position;
+    size_t max_length;
+    size_t position;
     char* data;
 }* BUFFER_STRUCT;
 
