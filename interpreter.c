@@ -68,39 +68,98 @@ function_hashtablePtr* function_hashtable_init (void)
 
 int function_hashtable_insert (function_hashtablePtr* function_hashtable, TokenPtr function_token,  BUFFER_STRUCT buffer)
 {
+    if (DEBUGGING) printf("HT-insert\n");
+    
     int error = 0;
     char* string = &(buffer->data[function_token->content]);
+    if (DEBUGGING == 2) printf ("nazev vkladane funkce: \"%s\"\n", string);
     function_hashtablePtr searched_item = function_hashtable_search (function_hashtable, string);
     /* Haven't found, have to insert */
+    if (DEBUGGING == 2) printf("HT-insert1\n");
     if (searched_item == NULL)
     {
-        unsigned int index = hash_function (string);
-        searched_item->name = malloc(sizeof(strlen(string)) + 1);
-        
-        /* Failed allocation*/
-        if (searched_item->name == NULL)
+        if (strcmp(string, "boolval") == 0)
         {
-            return IFJ_ERR_INTERNAL;
+            error = IFJ_ERR_UNDEF_REDEF;
         }
-        
-        int i = 0;
-        while (string[i] != '\0')
+        else if (strcmp(string, "intval") == 0)
         {
-            searched_item->name[i] = string[i];
-            ++i;
+            error = IFJ_ERR_UNDEF_REDEF;
         }
-        searched_item->name[i] = '\0';
-        searched_item->function_token = function_token;
-                
-        function_hashtablePtr collision_item = function_hashtable[index];
-        searched_item->next = collision_item;
-        function_hashtable[index] = searched_item;
+        else if (strcmp(string, "strval") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else if (strcmp(string, "doubleval") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else if (strcmp(string, "strlen") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else if (strcmp(string, "get_string") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else if (strcmp(string, "put_string") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else if (strcmp(string, "sort_string") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else if (strcmp(string, "get_substring") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else if (strcmp(string, "find_string") == 0)
+        {
+            error = IFJ_ERR_UNDEF_REDEF;
+        }
+        else
+        {
+            if (DEBUGGING == 2) printf("HT-insert2\n");
+            
+            unsigned int index = hash_function (string);
+            searched_item = malloc (sizeof(struct function_hash_table));
+            searched_item->name = malloc(sizeof(strlen(string)) + 1);
+            
+            if (DEBUGGING == 2) printf("HT-insert2a\n");
+            /* Failed allocation*/
+            if (searched_item->name == NULL)
+            {
+                return IFJ_ERR_INTERNAL;
+            }
+            
+            int i = 0;
+            if (DEBUGGING == 2) printf("HT-insert2b\n");
+            while (string[i] != '\0')
+            {
+                searched_item->name[i] = string[i];
+                ++i;
+            }
+            if (DEBUGGING == 2) printf("HT-insert2c\n");
+            searched_item->name[i] = '\0';
+            searched_item->function_token = function_token;
+            if (DEBUGGING == 2) printf("HT-insert2d\n");
+                    
+            function_hashtablePtr collision_item = function_hashtable[index];
+            searched_item->next = collision_item;
+            function_hashtable[index] = searched_item;
+            if (DEBUGGING == 2) printf("HT-insert2e\n");
+        }
     }
     /* Found - ERROR - Function redefinition */
     else
     {
+        if (DEBUGGING == 2) printf("HT-insert3\n");
         error = IFJ_ERR_UNDEF_REDEF;
     }
+    
+    if (DEBUGGING) printf("HT-insert -end\n");
+    
     return error;
 }
 
@@ -151,6 +210,7 @@ void function_hashtable_free (function_hashtablePtr* function_hashtable)
         {
             function_hashtable[i] = item->next;
             free(item->name);
+            free(item);
         }
     }
     free(function_hashtable);
