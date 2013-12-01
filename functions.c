@@ -419,6 +419,7 @@ int get_string(changeable_tokenPtr token)
 		else
 		{
 			free(tmp_data);
+			tmp_data = NULL;
 			return IFJ_ERR_INTERNAL;
 		}
 		i++;
@@ -484,6 +485,7 @@ int sort_string(changeable_tokenPtr token)
 		merge_sort(tmp_data, out, 0, length - 1);
 		error_code = changeable_token_update(token, tmp_data);
 		free(out);
+		out = NULL;
 	}
 	else error_code = IFJ_ERR_OTHER_RUNTIME;
 	return error_code;

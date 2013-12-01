@@ -32,7 +32,7 @@
 changeable_tokenPtr first_changeable_token = NULL;
 
 //DEBUGGING - 0 OFF, 1 SMALL INFO, 2 LARGE INFO
-int DEBUGGING = 0;
+int DEBUGGING = 1;
 
 /****************************************************
  *              FUNCTION HASHTABLE
@@ -210,10 +210,13 @@ void function_hashtable_free (function_hashtablePtr* function_hashtable)
         {
             function_hashtable[i] = item->next;
             free(item->name);
+            item->name = NULL;
             free(item);
+            item = NULL;
         }
     }
     free(function_hashtable);
+    function_hashtable = NULL;
 }
 
 /****************************************************
@@ -222,13 +225,18 @@ void function_hashtable_free (function_hashtablePtr* function_hashtable)
 
 changeable_tokenPtr changeable_token_Init (void)
 {
+    if (DEBUGGING == 2) printf("token_init\n");
+    
     changeable_tokenPtr New_token = malloc(sizeof(struct changeable_token));
     if (New_token == NULL)
     {
         return NULL;
     }
     New_token->next = first_changeable_token;
+    New_token->data = NULL;
     first_changeable_token = New_token;
+    
+    if (DEBUGGING == 2) printf("token_init-end\n");    
     return New_token;
 }
 
@@ -237,12 +245,13 @@ changeable_tokenPtr changeable_token_Init (void)
  */
 int changeable_token_update(changeable_tokenPtr change_token, char * new_data)
 { 
-    
+    if (DEBUGGING == 2) printf("token_update\n");
     if ((change_token->data == NULL) || strlen(change_token->data) < strlen(new_data)) 
     { 
         if (change_token->data != NULL && (strlen(change_token->data) != 0))
         {
             free(change_token->data);
+            change_token->data = NULL;
         }
         change_token->data = malloc (sizeof(char)* (strlen(new_data)+1)); 
         if(change_token->data == NULL) 
@@ -257,11 +266,14 @@ int changeable_token_update(changeable_tokenPtr change_token, char * new_data)
         ++i;
     } 
     change_token->data[i] = '\0';
+    
+    if (DEBUGGING == 2) printf("token_update-end\n");    
     return 0;
 }
 
 int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, BUFFER_STRUCT buffer)
 {
+    if (DEBUGGING == 2) printf("token_insert\n");
     change_token->id = token->id;
     if ((change_token->data = malloc(sizeof(char) * (strlen(&(buffer->data[token->content])) + 1))) == NULL)
     {
@@ -274,7 +286,8 @@ int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, B
         ++i;
     } 
     change_token->data[i] = '\0';
-    
+
+    if (DEBUGGING == 2) printf("token_insert-end\n");    
     return 0;
 }
 
@@ -283,13 +296,17 @@ int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, B
  */
 void changeable_token_Destroy (void)
 {
+    if (DEBUGGING == 2) printf("token_destroy\n");    
     while (first_changeable_token != NULL)
     {
         changeable_tokenPtr destroyed_token = first_changeable_token;
         first_changeable_token = first_changeable_token->next;
         free(destroyed_token->data);
+        destroyed_token->data = NULL;
         free(destroyed_token);
+        destroyed_token = NULL;
     }
+    if (DEBUGGING == 2) printf("token_destroy-end\n");
 }
 
 /****************************************************
@@ -438,7 +455,8 @@ int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT b
                 sprintf(new_data, "%d", number_of_params);
                 change_token->id = IFJ_T_INT;
                 error = changeable_token_update(change_token, new_data);
-                free(new_data);  
+                free(new_data);
+                new_data = NULL;
             }
         }
     }
@@ -471,6 +489,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT b
     /* NORMAL FUNCTIONS */
     else
     {
+        if (DEBUGGING) printf("normal-functions : %d\n", token->id);
     /** TO DO
      *  when calling function, i shouldn't forget on creating new hashtable, when returning then free */     
     }
@@ -496,7 +515,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
     {
         if (first)
         {
-            switch (token->id)
+            switch (my_token->id)
             {
             case IFJ_T_INT:             //10
                 error = number_function (token, change_token, buffer);
@@ -875,6 +894,7 @@ int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFF
         // update data
         error = changeable_token_update(change_token, result_string);
         free (result_string);
+        result_string = NULL;
     }
     return error;
 }
@@ -1008,6 +1028,7 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                 // update data
                 error = changeable_token_update(change_token, result_string);
                 free (result_string);
+                result_string = NULL;
             }
             // bad types
             else
@@ -1284,19 +1305,21 @@ int interpreter (BUFFER_STRUCT buffer, TokenPtr token)
     }
     int error = 0;
     
+    TokenPtr my_token = token;
+    
     hashtable_item** hashtable = hashtable_init();
     if (hashtable == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
-    while(token->id != IFJ_T_EOF)
+    while(my_token != NULL || my_token->id != IFJ_T_EOF)
     {
-        if ((error = call_root_function (token, hashtable, buffer)) != 0)
+        if ((error = call_root_function (my_token, hashtable, buffer)) != 0)
         {
             changeable_token_Destroy();
             return error;
         }
-        token = token->next;
+        my_token = my_token->next;
     }
     hashtable_free(hashtable);
     changeable_token_Destroy();

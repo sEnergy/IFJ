@@ -151,6 +151,7 @@ void hashtable_free (hashtable_item** hashtable)
 {
     clear_hashtable (hashtable);
     free(hashtable);
+    hashtable = NULL;
 }
 
 /*
@@ -259,6 +260,7 @@ void clear_hashtable (hashtable_item** hashtable)
         {
             hashtable[i] = item->next;
             free(item);
+            item = NULL;
         }
     }
 }
