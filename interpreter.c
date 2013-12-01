@@ -62,7 +62,9 @@ function_hashtablePtr* function_hashtable_init (void)
     return returned_pointer;
 }
 
-
+/*
+ *  If it's not there - insert, if it is - redefinition error
+ */
 
 int function_hashtable_insert (function_hashtablePtr* function_hashtable, TokenPtr function_token,  BUFFER_STRUCT buffer)
 {
@@ -243,7 +245,7 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
     if (DEBUGGING) printf("leaf: %d\n", token->id);
     
     /* error should be always changed */
-    int error = IFJ_ERR_INTERNAL;
+    int error = IFJ_ERR_OTHER_RUNTIME;
     
     switch (token->id)
     {
@@ -292,12 +294,209 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
         case IFJ_T_NOT_SUPER_EQUAL: // '!=='
             error = boolean_function (token, change_token, buffer, hashtable);
             break;
-                
-    /** TO DO
-     *  when calling function, i shouldn't forget on creating new hashtable, when returning then free */
+        case IFJ_T_ID:              //function
+            error = functions (token, change_token, buffer, hashtable);
+            break;
     }    
     
     if (DEBUGGING) printf("leaf end: %d\n", token->id);
+    return error;
+}
+/*
+ * Function, that handles calling functions
+ */
+int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
+{
+    if (DEBUGGING) printf("functions: %d\n", token->id);
+    
+    int error = 0;
+    /* BUILD IN FUNCTIONS */
+    if (strcmp(&(buffer->data[token->content]), "boolval") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 1);
+        if (!error)
+        {
+            error = boolval(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "intval") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 1);
+        if (!error)
+        {
+            error = intval(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "doubleval") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 1);
+        if (!error)
+        {
+            error = doubleval(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "strval") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 1);
+        if (!error)
+        {
+            error = strval(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "strlen") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 1);
+        if (!error)
+        {
+            error = str_len(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "get_string") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 0);
+        if (!error)
+        {
+            error = get_string(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "put_string") == 0)
+    {
+        int number_of_params = 0;
+        error = check_params (token->condition, change_token, buffer, hashtable, -1);
+        if (!error)
+        {
+            error = put_string(&number_of_params, change_token);
+            if (!error)
+            {
+                int number_of_params_temp = number_of_params;
+                int counter = 1;
+                while ((number_of_params_temp /= 10) > 0)
+                {
+                    counter++;
+                }
+                char* new_data = malloc (sizeof(char) * (counter + 1)); 
+                sprintf(new_data, "%d", number_of_params);
+                change_token->id = IFJ_T_INT;
+                error = changeable_token_update(change_token, new_data);
+                free(new_data);  
+            }
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "sort_string") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 1);
+        if (!error)
+        {
+            error = sort_string(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "get_substring") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 3);
+        if (!error)
+        {
+            //waiting for Marcel
+            //error = get_substring(change_token);
+        }
+    }
+    else if (strcmp(&(buffer->data[token->content]), "find_string") == 0)
+    {
+        error = check_params (token->condition, change_token, buffer, hashtable, 2);
+        if (!error)
+        {
+            //waiting for Marcel
+            //error = find_string(change_token);
+        }
+    }
+    /* NORMAL FUNCTIONS */
+    else
+    {
+    /** TO DO
+     *  when calling function, i shouldn't forget on creating new hashtable, when returning then free */     
+    }
+    
+    if (DEBUGGING) printf("functions end: %d\n", token->id);
+    
+    return error;
+}
+
+/*
+ *  If number of params < 0, the number can be infinity 
+ */
+int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, int number_of_params)
+{
+    if (DEBUGGING) printf("check_params: %d\n", token->id);
+    
+    int error = 0;
+    int first = 1; //if the changeable_token is the first one
+    changeable_tokenPtr change_token_first = change_token;
+    TokenPtr my_token = token; //so i dont destroy the original token
+    
+    while (!error && my_token != NULL && number_of_params != 0)
+    {
+        if (first)
+        {
+            switch (token->id)
+            {
+            case IFJ_T_INT:             //10
+                error = number_function (token, change_token, buffer);
+                break;
+            case IFJ_T_DOUBLE:          //10.0
+                error = number_function (token, change_token, buffer);
+                break;
+            case IFJ_T_STRING:          //"10ahoj"
+                error = number_function (token, change_token, buffer);
+                break;
+            case IFJ_T_VARIALBE:        //$ahoj
+                error = var_function (token, change_token, buffer, hashtable);
+                break;
+            default:
+                error = IFJ_ERR_OTHER_RUNTIME;
+                break;
+            }
+            first = 0;
+        }
+        else
+        {
+            changeable_tokenPtr change_token_new = changeable_token_Init();
+            //allocation problem
+            if (change_token_new == NULL)
+            {
+                return IFJ_ERR_INTERNAL;
+            }
+            change_token_new->next_params = NULL;
+            change_token->next_params = change_token_new;
+            switch (token->id)
+            {
+            case IFJ_T_INT:             //10
+                error = number_function (token, change_token_new, buffer);
+                break;
+            case IFJ_T_DOUBLE:          //10.0
+                error = number_function (token, change_token_new, buffer);
+                break;
+            case IFJ_T_STRING:          //"10ahoj"
+                error = number_function (token, change_token_new, buffer);
+                break;
+            case IFJ_T_VARIALBE:        //$ahoj
+                error = var_function (token, change_token_new, buffer, hashtable);
+                break;
+            default:
+                error = IFJ_ERR_OTHER_RUNTIME;
+                break;
+            }
+            change_token = change_token_new;           
+        }
+        number_of_params--;
+        my_token = my_token->next;
+    }
+    if (!error && number_of_params >= 0 && (number_of_params != 0 || my_token != NULL))
+    {
+        error = IFJ_ERR_MISSING_PARAMETER;
+    }
+    change_token = change_token_first; //get the beginning back
+    
+    if (DEBUGGING) printf("check_params end: %d\n", token->id);
+    
     return error;
 }
 
@@ -941,7 +1140,7 @@ int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUC
     if (DEBUGGING) printf("root: %d\n", token->id);
     
     /* error should be always changed */
-    int error = IFJ_ERR_INTERNAL;
+    int error = IFJ_ERR_OTHER_RUNTIME;
     
     switch (token->id)
     {

@@ -3,6 +3,7 @@
  * Project name:        IFJ - Team project
  * Filename:            ial.h
  * Author:              Marcel Fiala
+ * 						Luboš Vaníček
  *                      Ivan Straka
  * Encoding:            UTF-8
  *

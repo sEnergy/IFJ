@@ -335,7 +335,7 @@ int syntax_analyzer (char* input_filename)
     // starts interpret
     if (code == 0)
     {
-		code = interpreter(token_content, token);
+		//code = interpreter(token_content, token);
 	}
     
     // free all allocated memory, close file
