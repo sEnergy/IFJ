@@ -104,7 +104,7 @@ int search_substring(char* substring, char* string, int* found)
 }
 
 /**********************************************
- *					HASHTABLE
+ *                    HASHTABLE
  **********************************************/
 
 /*

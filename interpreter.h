@@ -27,9 +27,9 @@ typedef struct changeable_token
 /* function hashtable */
 typedef struct function_hash_table
 {
-	char* name;
-	TokenPtr function_token;
-	struct function_hash_table* next;
+    char* name;
+    TokenPtr function_token;
+    struct function_hash_table* next;
 }* function_hashtablePtr;
 
 function_hashtablePtr* function_hashtable_init (void);

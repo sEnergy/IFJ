@@ -105,7 +105,7 @@ int work(Stack_t* stack, TokenList* list)
             free(proceeded);
             proceeded = NULL;
             S_pop(stack);
-            operator->is_expression = TRUE;
+            operator->is_expression = true;
         }
         else
         {
@@ -124,7 +124,7 @@ int work(Stack_t* stack, TokenList* list)
 TokenPtr Lclosest_term(TokenList* list)
 {
     List_itemPtr proceeded = list->active->LPtr;
-    while(proceeded->is_expression == TRUE)
+    while(proceeded->is_expression == true)
     {
         proceeded = proceeded->LPtr;
     }
@@ -190,7 +190,7 @@ int PSA(TokenList* list)
 // Simulation of the rule E->i
         if (is_terminal(list->active->content->id)) 
         {
-            list->active->is_expression = TRUE;
+            list->active->is_expression = true;
             TL_ActiveNext(list);
             continue;
         }
@@ -347,8 +347,8 @@ int syntax_analyzer (char* input_filename)
     // starts interpret
     if (code == 0)
     {
-		code = interpreter(token_content, token);
-	}
+        code = interpreter(token_content, token);
+    }
     
     // free all allocated memory, close file
     fclose(input);
@@ -711,7 +711,7 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
             else
             {
                 // assign from expression
-                return check_expression (input, &(token->RPtr), IFJ_T_SEMICOLON, TRUE, big_string);
+                return check_expression (input, &(token->RPtr), IFJ_T_SEMICOLON, true, big_string);
             }
         }
         else
@@ -730,7 +730,7 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
     else if (strcmp(&big_string->data[token_old->content], "return\0") == 0)
     {
         // there must be expression ending with semicolon
-        return check_expression (input, &(*token_oldPtr)->LPtr, IFJ_T_SEMICOLON, FALSE, big_string);
+        return check_expression (input, &(*token_oldPtr)->LPtr, IFJ_T_SEMICOLON, false, big_string);
     }
 
     return IFJ_ERR_SYNTAX; // if control gets here, it is definitely error
@@ -865,7 +865,7 @@ int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
         return code;
     }
 
-    // than first statement list for case conditon == TRUE
+    // than first statement list for case conditon == true
     if ((code = check_stat_list (input, &token_old->LPtr, big_string)) != 0)
     {
         return code;
@@ -886,7 +886,7 @@ int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
         return IFJ_ERR_SYNTAX;
     }
     
-    // and statement list for case conditon != TRUE
+    // and statement list for case conditon != true
     if ((code = check_stat_list (input, &token_old->RPtr, big_string)) != 0)
     {
         return code;
@@ -999,34 +999,34 @@ int check_condition (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
     {
         free(token);
         token = NULL;
-        return check_expression (input, &token_old->condition, IFJ_T_RB, FALSE, big_string);
+        return check_expression (input, &token_old->condition, IFJ_T_RB, false, big_string);
     }
     return IFJ_ERR_SYNTAX;
 }
 
-// if token is variable or literal, return TRUE
+// if token is variable or literal, return true
 bool is_terminal (int token)
 {
     if (IFJ_T_VARIALBE <= token && token <= IFJ_T_STRING)
     {
-        return TRUE;
+        return true;
     }
     else
     {
-        return FALSE;
+        return false;
     }
 }
 
-// if token id corresponds with operator that could be in expression, return TRUE
+// if token id corresponds with operator that could be in expression, return true
 bool is_operator (int token)
 {
     if ((IFJ_T_ASSIGN <= token && token <= IFJ_T_NOT_SUPER_EQUAL))
     {
-        return TRUE;
+        return true;
     }
     else
     {
-        return FALSE;
+        return false;
     }
 }
 

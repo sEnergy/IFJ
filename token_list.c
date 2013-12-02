@@ -38,7 +38,7 @@ int S_push(Stack_t* S, TokenPtr token)
     new_item->content = token;
     new_item->next = S->Top;
     S->Top = new_item;
-    return TRUE;
+    return true;
 }
 // top&pop
 TokenPtr S_top_pop(Stack_t* S)
@@ -95,7 +95,7 @@ int TL_Insert_First (TokenList *List, TokenPtr token)
     }
 
     new->content = token;
-    new->is_expression = FALSE;
+    new->is_expression = false;
     
 
     if (List->last == NULL)
@@ -125,7 +125,7 @@ int TL_Insert_Last (TokenList *List, TokenPtr token)
     }
 
     new->content = token;
-    new->is_expression = FALSE;
+    new->is_expression = false;
     
 
     if (List->last == NULL)
