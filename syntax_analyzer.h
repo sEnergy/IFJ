@@ -20,8 +20,7 @@
 
 #define IFJ_SYNTAX_DEF_BUFF_SIZE 20
 #define IFJ_OPEN_TAG_SIZE 6
-#define true 1
-#define false 0
+
 
 //generate AST using PSA table for defined rules
 int PSA(TokenList* list);

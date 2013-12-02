@@ -19,8 +19,6 @@
  */
 #define SIZE_OF_HASHTABLE 1000
 
-#define true 1
-#define false 0
 
 /*
  * Deffinitions of used structures
