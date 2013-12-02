@@ -24,7 +24,7 @@ VGPARAMS=--tool=memcheck --leak-check=yes -v --show-reachable=yes \
 
 # creation of object files
 %.o : %.c
-    $(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) -c $<
 
 # start rule
 all: dep link clndep
@@ -45,7 +45,7 @@ dep:
 
 # linking object files in one executable file
 $(NAME): $(OBJFILES)
-    $(CC) $(CFLAGS) $(OBJFILES) -lm -o $@
+	$(CC) $(CFLAGS) $(OBJFILES) -lm -o $@
 
 #run
 run:

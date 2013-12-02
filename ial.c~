@@ -17,7 +17,7 @@
 
 #include "errors.h"
 #include "ial.h"
-#include "stdbool.h"
+#include "stdlib.h"
 
 /*
  * Examines substring for repeating patterns and creates table accordingly.
