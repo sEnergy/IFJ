@@ -236,7 +236,7 @@ int PSA(TokenList* list)
 // initicalizes buffer before first use
 int buffer_init(BUFFER_STRUCT buffer)
 {
-    buffer->data = (char*) malloc(IFJ_SYNTAX_DEF_BUFF_SIZE*sizeof(char));
+    buffer->data = (char*) malloc(IFJ_SYNTAX_DEF_BUFF_SIZE*sizeof(char)+1);
     if (buffer->data == NULL)
     {
         return IFJ_ERR_INTERNAL;

@@ -39,7 +39,7 @@ int write_c(BUFFER_STRUCT buffer, char c)
     char* new_ptr = NULL;
     if (buffer->position >= buffer->max_length)
     {    
-        new_ptr = (char*) realloc(buffer->data,2*buffer->max_length*sizeof(char));
+        new_ptr = (char*) realloc(buffer->data,1+2*buffer->max_length*sizeof(char));
 
         if (new_ptr == NULL)
         {
@@ -81,10 +81,14 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
         token->id = IFJ_T_EOF;
         return 0;
     }
-    
-//    printf("%zu %zu  ",buffer->position,buffer->max_length);
-//    for(size_t i=0;i<=buffer->max_length;i++) printf("%c",buffer->data[i]);
-//    printf("--\n");
+/*    
+    printf("%zu %zu  ",buffer->position,buffer->max_length);
+    for(size_t i=0;i<=buffer->max_length;i++)
+        if (buffer->data[i] != '\0') printf("%c",buffer->data[i]);
+        else printf("|");
+        
+    printf("--\n");
+*/
     while(1)
     {
         switch(c)
