@@ -32,7 +32,7 @@
 changeable_tokenPtr first_changeable_token = NULL;
 
 //DEBUGGING - 0 OFF, 1 SMALL INFO, 2 LARGE INFO
-int DEBUGGING = 1;
+int DEBUGGING = 0;
 
 /****************************************************
  *              FUNCTION HASHTABLE
@@ -504,9 +504,15 @@ int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT b
  */
 int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, int number_of_params)
 {
-    if (DEBUGGING) printf("check_params: %d\n", token->id);
+    if (DEBUGGING && token != NULL) printf("check_params: %d\n", token->id);
+    else if (DEBUGGING) printf("check_params: nic\n");
     
-    int error = 0;
+    int error = 0;    
+    if (token == NULL && number_of_params == 0)
+    {
+        return error;
+    }
+
     int first = 1; //if the changeable_token is the first one
     changeable_tokenPtr change_token_first = change_token;
     TokenPtr my_token = token; //so i dont destroy the original token
@@ -533,6 +539,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
                 error = IFJ_ERR_OTHER_RUNTIME;
                 break;
             }
+            change_token->next_params = NULL;
             first = 0;
         }
         else
@@ -1312,7 +1319,7 @@ int interpreter (BUFFER_STRUCT buffer, TokenPtr token)
     {
         return IFJ_ERR_INTERNAL;
     }
-    while(my_token != NULL || my_token->id != IFJ_T_EOF)
+    while(my_token->id != IFJ_T_EOF)
     {
         if ((error = call_root_function (my_token, hashtable, buffer)) != 0)
         {
