@@ -440,22 +440,22 @@ int put_string(int* arg_number, changeable_tokenPtr token)
     int argc = 0;
     while(token->data != NULL)
     {
-        if (token->id == IFJ_T_INT) 
+        if (token->id == IFJ_T_INT)
         {
         printf("%s",token->data);
         argc++;
         }
-        else if (token->id == IFJ_T_DOUBLE) 
+        else if (token->id == IFJ_T_DOUBLE)
         {
         printf("%s",token->data);
         argc++;
         }
-        else if (token->id == IFJ_T_STRING) 
+        else if (token->id == IFJ_T_STRING)
         {
         printf("%s",token->data);
         argc++;
         }
-        else if (token->id == IFJ_T_KEYWORD)    
+        else if (token->id == IFJ_T_KEYWORD)
         {
         printf("%s",token->data);
         argc++;
@@ -464,7 +464,7 @@ int put_string(int* arg_number, changeable_tokenPtr token)
         token = token->next_params;
     }
     *arg_number = argc;
-    return 0;   
+    return 0;
 }
 
 /* *****************************************************************************
@@ -499,9 +499,39 @@ int sort_string(changeable_tokenPtr token)
 *******************************************************************************/
 int get_substring (changeable_tokenPtr token)
 {
-    (void)token;
-    printf ("CALL OF GET_SUBSTRING\n");
-    return 0;
+    char* string = token->data;
+    int start, end, code, str_len = strlen(string);
+
+    start = strtol(token->next_params->data, NULL, 10);
+    end = strtol(token->next_params->next_params->data, NULL, 10);
+
+    if (start < 0 || end < 0 || start > end || start >= str_len || end >= str_len)
+    {
+        code = IFJ_ERR_OTHER_RUNTIME;
+    }
+    else if (start == end)
+    {
+        code = changeable_token_update (token, "");
+    }
+    else
+    {
+        int substr_len = end-start;
+        int i_dest = 0;
+        char* tmp = malloc(sizeof(char)*(substr_len+1));
+
+        for (int i_src = start; i_src < end; ++i_src)
+        {
+            tmp[i_dest] = string[i_src];
+            ++i_dest;
+        }
+
+        tmp[i_dest] = '\0';
+
+        code = changeable_token_update (token, tmp);
+        free(tmp);
+    }
+
+    return code;
 }
 
 /* *****************************************************************************
@@ -509,29 +539,31 @@ int get_substring (changeable_tokenPtr token)
 *******************************************************************************/
 int find_string (changeable_tokenPtr token)
 {
-    /* AŽ BUDE OPRAVENY PREDAVANI TOKENU A FCE SE BUDE DAT TESTOVAT, TAK TO
-     * SKUTEČNĚ NAPOJÍM
-     */
-    int code = 0, fake_return;
+    int code = 0, found;
 
-    char* source = "Source"; // token->data;
-    char* pattern = "SSS"; // token->next_params->data;
+    char* source = token->data;
+    char* pattern = token->next_params->data;
 
     if (strlen(pattern) == 0) // empty pattern is always found on position zero
     {
         code = changeable_token_update (token, "0");
-        fake_return = 0;
     }
     else
     {
-        code = search_substring(pattern, source, &fake_return);
-    }
+        code = search_substring(pattern, source, &found);
+        if (code != 0) return code;
 
-    printf ("CALL OF FIND_STRING:%s, %s - RETURN:%d\n", source, pattern, fake_return);
+
+        char *tmp = malloc(sizeof(char)*10);
+        if (tmp == NULL) return IFJ_ERR_INTERNAL;
+
+        sprintf(tmp, "%i", found);
+
+        code = changeable_token_update (token, tmp);
+        free(tmp);
+    }
 
     return code;
 }
-
-
 
 /*** End of file functions.c ***/

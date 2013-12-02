@@ -11,7 +11,7 @@
 
 NAME=ifj_070
 CC=gcc
-CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic -g
+CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic -g -lm
 ARCHIVE_NAME=xvecer17
 
 OBJFILES=main.o syntax_analyzer.o lex_analyzer.o ial.o token_list.o \

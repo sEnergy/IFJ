@@ -1,7 +1,16 @@
 <?php //Program 1: Vypocet faktorialu (iterativne)
 
-//Hlavni telo programu 
+//Hlavni telo programu
 
-$x = put_string("Zadejte cislo pro vypocet faktorialu \n"); $a = get_string(); $a = intval ($a);
+$var1 = "Marcel Fiala";
+$var2 = "Fiala";
 
-if ($a < 0) { $x = put_string("Faktorial nelze spocitat\n"); } else { $vysl = 1; while($a > 0) { $vysl = $vysl * $a; $a = $a - 1; } $x = put_string("Vysledek je :", $vysl, "\n"); }
+$x = put_string("\nJdeme testovat find_string:\n");
+$result = find_string($var1, $var2);
+$x = put_string("Result:", $result, "\n");
+
+$x = put_string("\nJdeme testovat get_substring:\n");
+$result = get_substring($var1, 0, 6);
+$x = put_string("Result:", $result, "\n");
+
+
