@@ -437,31 +437,34 @@ int get_string(changeable_tokenPtr token)
 
 int put_string(int* arg_number, changeable_tokenPtr token)
 {
-    int error_code = 0;
-    changeable_tokenPtr new_token = token;
     int argc = 0;
-    if (new_token->id == IFJ_T_STRING)
+    while(token->data != NULL)
     {
-        while(token->data != NULL)
+        if (token->id == IFJ_T_INT) 
         {
-            if(new_token->id != IFJ_T_STRING) return IFJ_ERR_OTHER_RUNTIME;
-            if(new_token->next_params == NULL) break;
-            new_token = new_token->next_params;
+        printf("%s",token->data);
+        argc++;
         }
-
-        new_token = token;
-        while(token->data != NULL)
+        else if (token->id == IFJ_T_DOUBLE) 
         {
-            char *tmp_data = new_token->data;
-            printf("%s",tmp_data);
-            argc++;
-            if(new_token->next_params == NULL) break;
-            new_token = new_token->next_params;
+        printf("%s",token->data);
+        argc++;
         }
-        *arg_number = argc;
+        else if (token->id == IFJ_T_STRING) 
+        {
+        printf("%s",token->data);
+        argc++;
+        }
+        else if (token->id == IFJ_T_KEYWORD)    
+        {
+        printf("%s",token->data);
+        argc++;
+        }
+        if(token->next_params == NULL) break;
+        token = token->next_params;
     }
-    else error_code = IFJ_ERR_OTHER_RUNTIME;
-    return error_code;
+    *arg_number = argc;
+    return 0;   
 }
 
 /* *****************************************************************************
