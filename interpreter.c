@@ -48,17 +48,17 @@ function_hashtablePtr* function_hashtable_init (void)
     function_hashtablePtr* returned_pointer;
     /* allocation for pointer to number(size_of_hashtable) pointers */
     returned_pointer = (function_hashtablePtr*) malloc (SIZE_OF_HASHTABLE * sizeof(function_hashtablePtr));
-  
+
     if (returned_pointer == NULL)
     {
         return NULL;
     }
-    
+
     for (unsigned int i = 0; i < SIZE_OF_HASHTABLE; ++i)
     {
         returned_pointer[i] = NULL;
     }
-  
+
     return returned_pointer;
 }
 
@@ -69,7 +69,7 @@ function_hashtablePtr* function_hashtable_init (void)
 int function_hashtable_insert (function_hashtablePtr* function_hashtable, TokenPtr function_token,  BUFFER_STRUCT buffer)
 {
     if (DEBUGGING) printf("HT-insert\n");
-    
+
     int error = 0;
     char* string = &(buffer->data[function_token->content]);
     if (DEBUGGING == 2) printf ("nazev vkladane funkce: \"%s\"\n", string);
@@ -121,18 +121,18 @@ int function_hashtable_insert (function_hashtablePtr* function_hashtable, TokenP
         else
         {
             if (DEBUGGING == 2) printf("HT-insert2\n");
-            
+
             unsigned int index = hash_function (string);
             searched_item = malloc (sizeof(struct function_hash_table));
             searched_item->name = malloc(sizeof(strlen(string)) + 1);
-            
+
             if (DEBUGGING == 2) printf("HT-insert2a\n");
             /* Failed allocation*/
             if (searched_item->name == NULL)
             {
                 return IFJ_ERR_INTERNAL;
             }
-            
+
             int i = 0;
             if (DEBUGGING == 2) printf("HT-insert2b\n");
             while (string[i] != '\0')
@@ -144,7 +144,7 @@ int function_hashtable_insert (function_hashtablePtr* function_hashtable, TokenP
             searched_item->name[i] = '\0';
             searched_item->function_token = function_token;
             if (DEBUGGING == 2) printf("HT-insert2d\n");
-                    
+
             function_hashtablePtr collision_item = function_hashtable[index];
             searched_item->next = collision_item;
             function_hashtable[index] = searched_item;
@@ -157,9 +157,9 @@ int function_hashtable_insert (function_hashtablePtr* function_hashtable, TokenP
         if (DEBUGGING == 2) printf("HT-insert3\n");
         error = IFJ_ERR_UNDEF_REDEF;
     }
-    
+
     if (DEBUGGING) printf("HT-insert -end\n");
-    
+
     return error;
 }
 
@@ -171,23 +171,23 @@ function_hashtablePtr function_hashtable_search (function_hashtablePtr* function
 {
     /* using the hash function to get an index to the hashtable */
     unsigned int index = hash_function (string);
-    
+
     function_hashtablePtr searched_item = function_hashtable[index];
     int found = false;
-    
+
     while (searched_item != NULL)
     {
         if (!strcmp(function_hashtable[index]->name, string))
         {
             found = true;
-            break; 
+            break;
         }
         else
         {
             searched_item = searched_item->next;
         }
     }
-    
+
     if (found)
     {
         return searched_item;
@@ -226,7 +226,7 @@ void function_hashtable_free (function_hashtablePtr* function_hashtable)
 changeable_tokenPtr changeable_token_Init (void)
 {
     if (DEBUGGING == 2) printf("token_init\n");
-    
+
     changeable_tokenPtr New_token = malloc(sizeof(struct changeable_token));
     if (New_token == NULL)
     {
@@ -235,8 +235,8 @@ changeable_tokenPtr changeable_token_Init (void)
     New_token->next = first_changeable_token;
     New_token->data = NULL;
     first_changeable_token = New_token;
-    
-    if (DEBUGGING == 2) printf("token_init-end\n");    
+
+    if (DEBUGGING == 2) printf("token_init-end\n");
     return New_token;
 }
 
@@ -244,30 +244,30 @@ changeable_tokenPtr changeable_token_Init (void)
  * function changes data in @change_token, reallocates spaces if needed
  */
 int changeable_token_update(changeable_tokenPtr change_token, char * new_data)
-{ 
+{
     if (DEBUGGING == 2) printf("token_update\n");
-    if ((change_token->data == NULL) || strlen(change_token->data) < strlen(new_data)) 
-    { 
+    if ((change_token->data == NULL) || strlen(change_token->data) < strlen(new_data))
+    {
         if (change_token->data != NULL && (strlen(change_token->data) != 0))
         {
             free(change_token->data);
             change_token->data = NULL;
         }
-        change_token->data = malloc (sizeof(char)* (strlen(new_data)+1)); 
-        if(change_token->data == NULL) 
-        { 
-            return IFJ_ERR_INTERNAL; 
-        } 
+        change_token->data = malloc (sizeof(char)* (strlen(new_data)+1));
+        if(change_token->data == NULL)
+        {
+            return IFJ_ERR_INTERNAL;
+        }
     }
     int i = 0;
-    while (new_data[i] != '\0') 
-    { 
+    while (new_data[i] != '\0')
+    {
         change_token->data[i] = new_data[i];
         ++i;
-    } 
+    }
     change_token->data[i] = '\0';
-    
-    if (DEBUGGING == 2) printf("token_update-end\n");    
+
+    if (DEBUGGING == 2) printf("token_update-end\n");
     return 0;
 }
 
@@ -280,14 +280,14 @@ int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, B
         return IFJ_ERR_INTERNAL;
     }
     int i = 0;
-    while ((buffer->data[token->content + i]) != '\0') 
-    { 
+    while ((buffer->data[token->content + i]) != '\0')
+    {
         change_token->data[i] = buffer->data[token->content + i];
         ++i;
-    } 
+    }
     change_token->data[i] = '\0';
 
-    if (DEBUGGING == 2) printf("token_insert-end\n");    
+    if (DEBUGGING == 2) printf("token_insert-end\n");
     return 0;
 }
 
@@ -296,7 +296,7 @@ int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, B
  */
 void changeable_token_Destroy (void)
 {
-    if (DEBUGGING == 2) printf("token_destroy\n");    
+    if (DEBUGGING == 2) printf("token_destroy\n");
     while (first_changeable_token != NULL)
     {
         changeable_tokenPtr destroyed_token = first_changeable_token;
@@ -320,10 +320,10 @@ void changeable_token_Destroy (void)
 int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
 {
     if (DEBUGGING) printf("leaf: %d\n", token->id);
-    
+
     /* error should be always changed */
     int error = IFJ_ERR_OTHER_RUNTIME;
-    
+
     switch (token->id)
     {
         case IFJ_T_INT:             //10
@@ -374,8 +374,8 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
         case IFJ_T_ID:              //function
             error = functions (token, change_token, buffer, hashtable);
             break;
-    }    
-    
+    }
+
     if (DEBUGGING) printf("leaf end: %d\n", token->id);
     return error;
 }
@@ -385,7 +385,7 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
 int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
 {
     if (DEBUGGING) printf("functions: %d\n", token->id);
-    
+
     int error = 0;
     /* BUILD IN FUNCTIONS */
     if (strcmp(&(buffer->data[token->content]), "boolval") == 0)
@@ -451,7 +451,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT b
                 {
                     counter++;
                 }
-                char* new_data = malloc (sizeof(char) * (counter + 1)); 
+                char* new_data = malloc (sizeof(char) * (counter + 1));
                 sprintf(new_data, "%d", number_of_params);
                 change_token->id = IFJ_T_INT;
                 error = changeable_token_update(change_token, new_data);
@@ -473,8 +473,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT b
         error = check_params (token->condition, change_token, buffer, hashtable, 3);
         if (!error)
         {
-            //waiting for Marcel
-            //error = get_substring(change_token);
+            error = get_substring(change_token);
         }
     }
     else if (strcmp(&(buffer->data[token->content]), "find_string") == 0)
@@ -482,8 +481,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT b
         error = check_params (token->condition, change_token, buffer, hashtable, 2);
         if (!error)
         {
-            //waiting for Marcel
-            //error = find_string(change_token);
+            error = find_string(change_token);
         }
     }
     /* NORMAL FUNCTIONS */
@@ -491,23 +489,23 @@ int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT b
     {
         if (DEBUGGING) printf("normal-functions : %d\n", token->id);
     /** TO DO
-     *  when calling function, i shouldn't forget on creating new hashtable, when returning then free */     
+     *  when calling function, i shouldn't forget on creating new hashtable, when returning then free */
     }
-    
+
     if (DEBUGGING) printf("functions end: %d\n", token->id);
-    
+
     return error;
 }
 
 /*
- *  If number of params < 0, the number can be infinity 
+ *  If number of params < 0, the number can be infinity
  */
 int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, int number_of_params)
 {
     if (DEBUGGING && token != NULL) printf("check_params: %d\n", token->id);
     else if (DEBUGGING) printf("check_params: nic\n");
-    
-    int error = 0;    
+
+    int error = 0;
     if (token == NULL && number_of_params == 0)
     {
         return error;
@@ -516,7 +514,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
     int first = 1; //if the changeable_token is the first one
     changeable_tokenPtr change_token_first = change_token;
     TokenPtr my_token = token; //so i dont destroy the original token
-    
+
     while (!error && my_token != NULL && number_of_params != 0)
     {
         if (first)
@@ -570,7 +568,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
                 error = IFJ_ERR_OTHER_RUNTIME;
                 break;
             }
-            change_token = change_token_new;           
+            change_token = change_token_new;
         }
         number_of_params--;
         my_token = my_token->next;
@@ -580,16 +578,16 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
         error = IFJ_ERR_MISSING_PARAMETER;
     }
     change_token = change_token_first; //get the beginning back
-    
+
     if (DEBUGGING) printf("check_params end: %d\n", token->id);
-    
+
     return error;
 }
 
 int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
 {
     if (DEBUGGING) printf("bool: %d\n", token->id);
-    
+
     /* Allocating space for opperands */
     changeable_tokenPtr change_token_left;
     if ((change_token_left = changeable_token_Init()) == NULL)
@@ -606,9 +604,9 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
     {
         error = call_leaf_function (token->RPtr, change_token_right, buffer, hashtable);
     }
-    
+
     if (DEBUGGING == 2) printf("1bool: %d\n", token->id);
-    
+
     if (!error)
     {
         int equal = 0;
@@ -618,13 +616,13 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
         //different token type
         if ((change_token_left->id != change_token_right->id))
         {
-            error = IFJ_ERR_TYPE_COMPATIBILITY;               
+            error = IFJ_ERR_TYPE_COMPATIBILITY;
         }
         //same token type
         else
-        { 
+        {
             if (DEBUGGING == 2) printf("2bool: %d\n", token->id);
-            
+
             if (change_token_left->id == IFJ_T_KEYWORD)
             {
                 if (DEBUGGING == 2) printf("2abool: %d\n", token->id);
@@ -637,14 +635,14 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     }
                     else
                     {
-                        error = IFJ_ERR_TYPE_COMPATIBILITY; 
+                        error = IFJ_ERR_TYPE_COMPATIBILITY;
                     }
                 }
                 // boolean
                 else if (strcmp(change_token_left->data, "true") == 0)
                 {
                     if (DEBUGGING == 2) printf("2bbool: %d\n", token->id);
-                    
+
                     if (strcmp(change_token_right->data, "true") == 0)
                     {
                         equal = 1;
@@ -661,7 +659,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                 else if (strcmp(change_token_left->data, "false") == 0)
                 {
                     if (DEBUGGING == 2) printf("2cbool: %d\n", token->id);
-                    
+
                     if (strcmp(change_token_right->data, "false") == 0)
                     {
                         equal = 1;
@@ -679,7 +677,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                 else
                 {
                     if (DEBUGGING == 2) printf("2dbool: %d\n", token->id);
-                    
+
                     error = IFJ_ERR_TYPE_COMPATIBILITY;
                 }
             } // end of keyword
@@ -687,7 +685,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
             else if (change_token_left->id == IFJ_T_STRING)
             {
                 if (DEBUGGING == 2) printf("3bool: %d\n", token->id);
-                
+
                 int result = strcmp(change_token_left->data, change_token_right->data);
                 if (result == 0)
                 {
@@ -706,7 +704,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
             else if (change_token_left->id == IFJ_T_INT)
             {
                 if (DEBUGGING == 2) printf("4bool: %d\n", token->id);
-                
+
                 int operand_1 = atoi(change_token_left->data);
                 int operand_2 = atoi(change_token_right->data);
                 if (operand_1 == operand_2)
@@ -726,7 +724,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
             else
             {
                 if (DEBUGGING == 2) printf("5bool: %d\n", token->id);
-                
+
                 double operand_1 = atof(change_token_left->data);
                 double operand_2 = atof(change_token_right->data);
                 if (operand_1 == operand_2)
@@ -740,17 +738,17 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                 else
                 {
                     less = 1;
-                }           
+                }
             }
         } //end of same token type
-        
+
         //result will be always bool
         change_token->id = IFJ_T_KEYWORD;
         if (!error)
         {
             if (DEBUGGING == 2) printf("6bool: %d\n", token->id);
-            
-            switch (token->id) 
+
+            switch (token->id)
             {
                 case IFJ_T_LESS:            // '<'
                     if (less)
@@ -763,7 +761,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     {
                         if (DEBUGGING == 2) printf("6bbool: %d\n", token->id);
                         error = changeable_token_update(change_token, "false");
-                        if (DEBUGGING == 2) printf("6b2bool: %d\n", token->id  );  
+                        if (DEBUGGING == 2) printf("6b2bool: %d\n", token->id  );
                     }
                     break;
                 case IFJ_T_GREATER:         // '>'
@@ -778,7 +776,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     {
                         if (DEBUGGING == 2) printf("6dbool: %d\n", token->id);
                         error = changeable_token_update(change_token, "false");
-                        if (DEBUGGING == 2) printf("6d2bool: %d\n", token->id); 
+                        if (DEBUGGING == 2) printf("6d2bool: %d\n", token->id);
                     }
                     break;
                 case IFJ_T_LESS_EQUAL:      // '<='
@@ -792,7 +790,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     {
                         if (DEBUGGING == 2) printf("6fbool: %d\n", token->id);
                         error = changeable_token_update(change_token, "false");
-                        if (DEBUGGING == 2) printf("6f2bool: %d\n", token->id); 
+                        if (DEBUGGING == 2) printf("6f2bool: %d\n", token->id);
                     }
                     break;
                 case IFJ_T_GREATER_EQUAL:   // '>='
@@ -806,7 +804,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     {
                         if (DEBUGGING == 2) printf("6hbool: %d\n", token->id);
                         error = changeable_token_update(change_token, "false");
-                        if (DEBUGGING == 2) printf("6h2bool: %d\n", token->id);   
+                        if (DEBUGGING == 2) printf("6h2bool: %d\n", token->id);
                     }
                     break;
                 case IFJ_T_SUPER_EQUAL:     // '==='
@@ -820,7 +818,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     {
                         if (DEBUGGING == 2) printf("6jbool: %d\n", token->id);
                         error = changeable_token_update(change_token, "false");
-                        if (DEBUGGING == 2) printf("6j2bool: %d\n", token->id);    
+                        if (DEBUGGING == 2) printf("6j2bool: %d\n", token->id);
                     }
                     break;
                 case IFJ_T_NOT_SUPER_EQUAL: // '!=='
@@ -834,7 +832,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     {
                         if (DEBUGGING == 2) printf("6lbool: %d\n", token->id);
                         error = changeable_token_update(change_token, "false");
-                        if (DEBUGGING == 2) printf("6l2bool: %d\n", token->id);    
+                        if (DEBUGGING == 2) printf("6l2bool: %d\n", token->id);
                     }
                     break;
             }
@@ -842,7 +840,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
         else if (error == IFJ_ERR_TYPE_COMPATIBILITY)
         {
             if (DEBUGGING == 2) printf("7bool: %d\n", token->id);
-            
+
             switch (token->id)
             {
                 case IFJ_T_SUPER_EQUAL:     // '==='
@@ -854,9 +852,9 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
             }
         }
     }
-    
+
     if (DEBUGGING) printf("bool end: %d\n", token->id);
-    return error;    
+    return error;
 }
 
 int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
@@ -912,7 +910,7 @@ int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFF
 int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
 {
     if (DEBUGGING) printf("basic_operator: %d\n", token->id);
-    
+
     /* Allocating space for opperands */
     changeable_tokenPtr change_token_left;
     if ((change_token_left = changeable_token_Init()) == NULL)
@@ -947,7 +945,7 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                 double result_double;
                 int length_result;
                 char * result_string;
-                
+
                 // int and int
                 if (option_int)
                 {
@@ -958,7 +956,7 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                 else
                 {
                     operand_1_double = atof(change_token_left->data);
-                    operand_2_double = atof(change_token_right->data);               
+                    operand_2_double = atof(change_token_right->data);
                 }
                 int length_left = strlen(change_token_left->data);
                 int length_right = strlen(change_token_right->data);
@@ -971,10 +969,10 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                     }
                     else
                     {
-                        result_double = operand_1_double * operand_2_double;                        
+                        result_double = operand_1_double * operand_2_double;
                     }
                     length_result = length_left > length_right ? (2 * length_left) : (2 * length_right);
-                } 
+                }
                 else if (token->id == IFJ_T_PLUS)  // "+"
                 {
                     if (option_int)
@@ -983,8 +981,8 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                     }
                     else
                     {
-                        result_double = operand_1_double + operand_2_double;                        
-                    }            
+                        result_double = operand_1_double + operand_2_double;
+                    }
                     length_result = length_left > length_right ? (length_left + 1) : (length_right + 1);
                 }
                 else if (token->id == IFJ_T_MIN)  // "-"
@@ -995,10 +993,10 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                     }
                     else
                     {
-                        result_double = operand_1_double - operand_2_double;                        
-                    }           
+                        result_double = operand_1_double - operand_2_double;
+                    }
                     length_result = length_left > length_right ? (length_left) : (length_right);
-                    
+
                 }
                 else if (token->id == IFJ_T_DIV)  // "/"
                 {
@@ -1009,10 +1007,10 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                     }
                     else
                     {
-                        result_double = operand_1_double / operand_2_double;                        
-                    }           
+                        result_double = operand_1_double / operand_2_double;
+                    }
                     length_result = length_left > length_right ? (length_left) : (length_right);
-                    
+
                 }
                 result_string = malloc(sizeof(char) * (length_result + 3));
                 //allocation bug
@@ -1044,53 +1042,53 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
             }
         } // end of "*", "+", "-", "/"
     }
-    
+
     if (DEBUGGING) printf("basic_operator_end: %d\n", token->id);
     return error;
 }
 
-/* 
- * Function that handles numbers as terminals. 
+/*
+ * Function that handles numbers as terminals.
  */
 int number_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer)
 {
     if (DEBUGGING) printf("number_function: %d\n", token->id);
-    
+
     int error = changeable_token_Insert (change_token, token, buffer);
-    
+
     if (DEBUGGING) printf("number_function end: %d\n", token->id);
     return error;
 }
 
-/* 
- * Searches for the variable in hashtable. Retruns 0 if ok, otherwise returns nonzero value. 
+/*
+ * Searches for the variable in hashtable. Retruns 0 if ok, otherwise returns nonzero value.
  */
 int var_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable)
 {
     if (DEBUGGING) printf("var_function: %d\n", token->id);
-    
+
     int error = 0;
     hashtable_item* item = search_hashtable (hashtable, &(buffer->data[token->content]));
     if (item == NULL)
     {
         return IFJ_ERR_UNDECLARED_VARIABLE;
     }
-    
+
     /* if the data are found, get them from the hashtable */
     change_token->id = item->type;
     changeable_token_update(change_token, item->value);
-    
+
     if (DEBUGGING) printf("var_function end: %d\n", token->id);
     return error;
 }
 
 /*
  * function that handles '='
- */ 
+ */
 int assignment (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer)
 {
     if (DEBUGGING) printf("assignment: %d\n", token->id);
-    
+
     int error = 0;
     changeable_tokenPtr change_token_right;
     if ((change_token_right = changeable_token_Init()) == NULL)
@@ -1102,7 +1100,7 @@ int assignment (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer
     {
         return IFJ_ERR_INTERNAL;
     }
-    
+
     error = call_leaf_function (token->RPtr, change_token_right, buffer, hashtable);
     if (!error)
     {
@@ -1120,21 +1118,21 @@ int assignment (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer
 int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer)
 {
     if (DEBUGGING) printf("while: %d\n", token->id);
-    
+
     int error = 0;
-    
+
     //create token for condition
     changeable_tokenPtr change_token;
     if ((change_token = changeable_token_Init()) == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
-    
+
     while (!error)
     {
         //check condition
         error = call_leaf_function (token->condition, change_token, buffer, hashtable);
-        
+
         if (!error)
         {
             //retype condition to bool
@@ -1156,7 +1154,7 @@ int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT bu
             }
         }
     }
-    
+
     if (DEBUGGING) printf("while end: %d\n", token->id);
     return error;
 }
@@ -1164,9 +1162,9 @@ int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT bu
 int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer)
 {
     if (DEBUGGING) printf("if: %d\n", token->id);
-    
+
     int error = 0;
-    
+
     //create token for condition
     changeable_tokenPtr change_token;
     if ((change_token = changeable_token_Init()) == NULL)
@@ -1175,7 +1173,7 @@ int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffe
     }
     //check condition
     error = call_leaf_function (token->condition, change_token, buffer, hashtable);
-    
+
     if (!error)
     {
         //retype condition to bool
@@ -1199,7 +1197,7 @@ int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffe
             }
         }
     }
-    
+
     if (DEBUGGING) printf("if end: %d\n", token->id);
     return error;
 }
@@ -1226,10 +1224,10 @@ int is_true (changeable_tokenPtr change_token)
 int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer)
 {
     if (DEBUGGING) printf("root: %d\n", token->id);
-    
+
     /* error should be always changed */
     int error = IFJ_ERR_OTHER_RUNTIME;
-    
+
     switch (token->id)
     {
         case IFJ_T_ASSIGN:
@@ -1250,7 +1248,7 @@ int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUC
             /** PRIDAT RETURN */
             break;
     }
-    
+
     if (DEBUGGING) printf("root end: %d\n", token->id);
     return error;
 }
@@ -1300,10 +1298,10 @@ void print_ASS (TokenPtr token, int number)
 /*
  * The core function that calls everything else
  */
-int interpreter (BUFFER_STRUCT buffer, TokenPtr token) 
+int interpreter (BUFFER_STRUCT buffer, TokenPtr token)
 {
     //print Ivan's Tree
-    if (DEBUGGING) 
+    if (DEBUGGING)
     {
         printf("****************BAMBIHO STROM*******************\n");
         int number = 1;
@@ -1311,9 +1309,9 @@ int interpreter (BUFFER_STRUCT buffer, TokenPtr token)
         printf("\n**************LUBOSOVY PRUCHODY*****************\n");
     }
     int error = 0;
-    
+
     TokenPtr my_token = token;
-    
+
     hashtable_item** hashtable = hashtable_init();
     if (hashtable == NULL)
     {
@@ -1330,6 +1328,6 @@ int interpreter (BUFFER_STRUCT buffer, TokenPtr token)
     }
     hashtable_free(hashtable);
     changeable_token_Destroy();
-    
+
     return error;
 }
