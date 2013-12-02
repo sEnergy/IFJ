@@ -512,7 +512,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
     }
 
     int first = 1; //if the changeable_token is the first one
-    changeable_tokenPtr change_token_first = change_token;
+    changeable_tokenPtr change_token_active = change_token;
     TokenPtr my_token = token; //so i dont destroy the original token
 
     while (!error && my_token != NULL && number_of_params != 0)
@@ -522,16 +522,16 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
             switch (my_token->id)
             {
             case IFJ_T_INT:             //10
-                error = number_function (token, change_token, buffer);
+                error = number_function (my_token, change_token, buffer);
                 break;
             case IFJ_T_DOUBLE:          //10.0
-                error = number_function (token, change_token, buffer);
+                error = number_function (my_token, change_token, buffer);
                 break;
             case IFJ_T_STRING:          //"10ahoj"
-                error = number_function (token, change_token, buffer);
+                error = number_function (my_token, change_token, buffer);
                 break;
             case IFJ_T_VARIALBE:        //$ahoj
-                error = var_function (token, change_token, buffer, hashtable);
+                error = var_function (my_token, change_token, buffer, hashtable);
                 break;
             default:
                 error = IFJ_ERR_OTHER_RUNTIME;
@@ -549,26 +549,26 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
                 return IFJ_ERR_INTERNAL;
             }
             change_token_new->next_params = NULL;
-            change_token->next_params = change_token_new;
-            switch (token->id)
+            change_token_active->next_params = change_token_new;
+            switch (my_token->id)
             {
             case IFJ_T_INT:             //10
-                error = number_function (token, change_token_new, buffer);
+                error = number_function (my_token, change_token_new, buffer);
                 break;
             case IFJ_T_DOUBLE:          //10.0
-                error = number_function (token, change_token_new, buffer);
+                error = number_function (my_token, change_token_new, buffer);
                 break;
             case IFJ_T_STRING:          //"10ahoj"
-                error = number_function (token, change_token_new, buffer);
+                error = number_function (my_token, change_token_new, buffer);
                 break;
             case IFJ_T_VARIALBE:        //$ahoj
-                error = var_function (token, change_token_new, buffer, hashtable);
+                error = var_function (my_token, change_token_new, buffer, hashtable);
                 break;
             default:
                 error = IFJ_ERR_OTHER_RUNTIME;
                 break;
             }
-            change_token = change_token_new;
+            change_token_active = change_token_new;
         }
         number_of_params--;
         my_token = my_token->next;
@@ -577,7 +577,6 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
     {
         error = IFJ_ERR_MISSING_PARAMETER;
     }
-    change_token = change_token_first; //get the beginning back
 
     if (DEBUGGING) printf("check_params end: %d\n", token->id);
 
