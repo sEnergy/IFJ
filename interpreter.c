@@ -767,7 +767,6 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
                     if (greater)
                     {
                         if (DEBUGGING == 2) printf("6cbool: %d\n", token->id);
-                        if (change_token->data != NULL) printf("\"%s\"\n", change_token->data);
                         error = changeable_token_update(change_token, "true");
                         if (DEBUGGING == 2) printf("6c2bool: %d\n", token->id);
                     }
@@ -1143,7 +1142,16 @@ int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT bu
                     //check for empty statement
                     if (token->LPtr != NULL)
                     {
-                        error = call_root_function (token->LPtr, hashtable, buffer);
+                        TokenPtr my_token = token->LPtr;
+                        while(my_token != NULL)
+                        {
+                            if ((error = call_root_function (my_token, hashtable, buffer)) != 0)
+                            {
+                                changeable_token_Destroy();
+                                return error;
+                            }
+                            my_token = my_token->next;
+                        }
                     }
                 }
                 else //false -> end of while
@@ -1184,14 +1192,32 @@ int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffe
                 //check for empty statement
                 if (token->LPtr != NULL)
                 {
-                    error = call_root_function (token->LPtr, hashtable, buffer);
+                    TokenPtr my_token = token->LPtr;
+                    while(my_token != NULL)
+                    {
+                        if ((error = call_root_function (my_token, hashtable, buffer)) != 0)
+                        {
+                            changeable_token_Destroy();
+                            return error;
+                        }
+                        my_token = my_token->next;
+                    }
                 }
             }
             else //false
             {
                 if (token->RPtr != NULL)
                 {
-                    error = call_root_function (token->RPtr, hashtable, buffer);
+                    TokenPtr my_token = token->RPtr;
+                    while(my_token != NULL)
+                    {
+                        if ((error = call_root_function (my_token, hashtable, buffer)) != 0)
+                        {
+                            changeable_token_Destroy();
+                            return error;
+                        }
+                        my_token = my_token->next;
+                    }
                 }
             }
         }
