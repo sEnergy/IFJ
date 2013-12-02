@@ -23,11 +23,16 @@
 #include "interpreter.h"
 
 //Return pointer to initialized token on heap. Null if internal error.
-TokenPtr new_token(void)
+TokenPtr new_token(Stack_t* garbages)
 {
     TokenPtr token = NULL;
     if ((token =(TokenPtr) malloc(sizeof(struct Token))) == NULL)
     {
+        return NULL;
+    }
+    if (S_push(garbages, token) != 0)
+    {
+        free(token);
         return NULL;
     }
     token->id = 50;
@@ -134,7 +139,7 @@ TokenPtr Lclosest_term(TokenList* list)
  * Function perform precedence syntax analyze and create abstract syntax 
  * tree of the operations, that are ordered accoring to precedence table
 */
-int PSA(TokenList* list)
+int PSA(TokenList* list, Stack_t* garbages)
 {
     Stack_t stack;
     TokenPtr start;
@@ -164,14 +169,12 @@ int PSA(TokenList* list)
         { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 2 , 2}, // )
         { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 4}, // $
     };
-    if((start = new_token()) == NULL)
+    if((start = new_token(garbages)) == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
-    if((end = new_token()) == NULL)
+    if((end = new_token(garbages)) == NULL)
     {
-        free(end);
-        end = NULL;
         return IFJ_ERR_INTERNAL;
     }
 // Create start and end terminals and joint it to the input.
@@ -208,12 +211,15 @@ int PSA(TokenList* list)
             case 2:
                 if ((code = work(&stack,list)) != 0)
                 {
-                    return IFJ_ERR_SYNTAX;
+                    return code;
                 }
                 continue;
             case 1:
 // Stack is stopper. < character in slides.
-                S_push(&stack,left_closest_term);
+                if ((code = S_push(&stack,left_closest_term)) != 0)
+                {
+                    return IFJ_ERR_INTERNAL;
+                }
                 TL_ActiveNext(list);
                 continue;
             case 0:            
@@ -228,9 +234,11 @@ int PSA(TokenList* list)
           list->first->RPtr == list->last->LPtr &&
           list->first != list->last))
     {
-//        S_dispose(&stack);
         return IFJ_ERR_SYNTAX;
     }
+    list->first = list->last = list->last->LPtr;
+    free(list->first->LPtr);
+    free(list->first->RPtr);
     return 0;
 }
 // initicalizes buffer before first use
@@ -300,10 +308,12 @@ int syntax_analyzer (char* input_filename)
     FILE* input;
     BUFFER_STRUCT token_content = NULL; // structure for token data
     TokenPtr token = NULL;
+    Stack_t garbages;
+    S_init(&garbages);
     function_hashtablePtr* FHTable = NULL;
     
     //first token
-    if ((token = new_token())==NULL)
+    if ((token = new_token(&garbages))==NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
@@ -343,7 +353,7 @@ int syntax_analyzer (char* input_filename)
         }
     }
     // start syntax analyze itself
-    code = check_syntax(input, &token, FHTable, token_content);
+    code = check_syntax(input, &token, FHTable, token_content, &garbages);
     // starts interpret
     if (code == 0)
     {
@@ -351,6 +361,7 @@ int syntax_analyzer (char* input_filename)
     }
     
     // free all allocated memory, close file
+    S_dispose_all(&garbages);
     fclose(input);
     free(token_content->data);
     token_content->data = NULL;
@@ -364,7 +375,7 @@ int syntax_analyzer (char* input_filename)
  * In infitine loop it reads from input source file and checks their order.
  * Only SYNTAX ERROR or EOF breaks cycle (and of course, INTERNAL ERROR).
  */
-int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HTable, BUFFER_STRUCT big_string)
+int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HTable, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
     TokenPtr token = *token_oldPtr;
@@ -380,7 +391,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
         {
             if (strcmp(&big_string->data[token->content], "function\0") == 0) // function declaration
             {
-                if((code = check_function_declaration (input, token, big_string)) != 0)
+                if((code = check_function_declaration (input, token, big_string, garbages)) != 0)
                 {
                     return code;
                 }
@@ -388,10 +399,11 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
                 {
                     return code;
                 }
-                if ((token = new_token())==NULL)
+                if ((token = new_token(garbages))==NULL)
                 {
                     return IFJ_ERR_INTERNAL;
                 }
+                *ancestorPtr = token;
                 continue;
             }
             else if ((strcmp(&big_string->data[token->content], "if\0") != 0)
@@ -402,7 +414,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
             }
             else // return statement, if-else construction or while cycle
             {
-                if((code = check_statement (input, ancestorPtr, big_string)) != 0)
+                if((code = check_statement (input, ancestorPtr, big_string, garbages)) != 0)
                 {
                     return code;
                 }
@@ -414,7 +426,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
         }
         else if (token->id == IFJ_T_VARIALBE) // assign statement
         {
-            if((code = check_statement (input, ancestorPtr, big_string)) != 0)
+            if((code = check_statement (input, ancestorPtr, big_string, garbages)) != 0)
             {
                 return code;
             }
@@ -423,7 +435,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
         {
             return IFJ_ERR_SYNTAX;
         }
-        if ((token_new = new_token())==NULL)
+        if ((token_new = new_token(garbages))==NULL)
         {
             return IFJ_ERR_INTERNAL;
         }
@@ -437,7 +449,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
  * Checks syntax of whole function declaration - identificator, parameter list
  * in braces and statement list in curly braces.
  */
-int check_function_declaration (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
+int check_function_declaration (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
 
@@ -452,12 +464,12 @@ int check_function_declaration (FILE *input, TokenPtr token_old, BUFFER_STRUCT b
     }
     
     // test of parameter list
-    if ((code = check_param_list (input, token_old, big_string)) != 0)
+    if ((code = check_param_list (input, token_old, big_string, garbages)) != 0)
     {
         return code;
     }
     // after parameter list, there must be corrent statement list
-    if ((code = check_stat_list (input, &token_old->LPtr, big_string)) != 0)
+    if ((code = check_stat_list (input, &token_old->LPtr, big_string, garbages)) != 0)
     {
         return code;
     }
@@ -470,60 +482,48 @@ int check_function_declaration (FILE *input, TokenPtr token_old, BUFFER_STRUCT b
  * Checks parameter list for fuction definiton - statement list betwenn curly
  * braces.
  */
-int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
+int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
     TokenPtr token = NULL;
-    
-    //setting number of parameters to zero
-    if ((token = new_token())==NULL)
-    {
-        return IFJ_ERR_INTERNAL;
-    }
-    token->id = IFJ_T_MOD;
-    token->content = 0;
-    token_old->condition = token;
+    TokenPtr* ancestor = &(token_old->condition);
 
     // check, if there is openin brace '('
-    if ((token = new_token())==NULL)
+    if ((token = new_token(garbages))==NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
     if ((code = lex_analyzer(input, token, big_string)) != 0)
     {
-        free(token);
-        token = NULL;
         return code;
     }
     if (token->id != IFJ_T_LB)
     {
-        free(token);
-        token = NULL;
         return IFJ_ERR_SYNTAX;
     }
 
     if ((code = lex_analyzer(input, token, big_string)) != 0)
     {
-        free(token);
-        token = NULL;
         return code;
     }
     while (1)
     {
         if (is_terminal(token->id))
         {
-            token_old->condition->content++;
+            *ancestor = token;
+            ancestor = &(token->next);
+            if ((token = new_token(garbages))==NULL)
+            {
+                return IFJ_ERR_INTERNAL;
+            }
             if ((code = lex_analyzer(input, token, big_string)) != 0)
             {
-                free(token);
-                token = NULL;
                 return code;
             }
             if (token->id == IFJ_T_SEP)
             {
                 if ((code = lex_analyzer(input, token, big_string)) != 0)
                 {
-                    free(token);
                     return code;
                 }
                 if (!is_terminal(token->id))
@@ -542,8 +542,7 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
             return IFJ_ERR_SYNTAX;
         }
         break;
-    }
-    free(token);
+    }       
     token = NULL;
     return 0;
 }
@@ -553,34 +552,30 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
  * which test the syntax of the expression.
  */
 int check_expression (FILE *input, TokenPtr* token_oldPtr,
-            unsigned int end_token, bool already_read, BUFFER_STRUCT big_string)
+            unsigned int end_token, bool already_read, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
     int rb_needed = 0;
     TokenPtr token = NULL;
     TokenList t_list;
     TL_Init(&t_list);
-    if ((token = new_token())==NULL)
+    if ((token = new_token(garbages))==NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
     // if current token does not belong to expression, we need to read one
     if (!already_read)
     {
-        if ((token = new_token()) == NULL)
+        if ((token = new_token(garbages)) == NULL)
         {
             return IFJ_ERR_INTERNAL;
         }
-        if ((token = new_token())==NULL)
+        if ((token = new_token(garbages))==NULL)
         {
-            free(token);
-            token = NULL;
             return IFJ_ERR_INTERNAL;
         }
         if ((code = lex_analyzer(input, token, big_string)) != 0)
         {
-            free(token);
-            token = NULL;
             return code;
         }
     }
@@ -603,7 +598,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
             }
             else // empty -> SYNTAX ERROR
             {
-//                TL_Dispose(&t_list);
+                TL_Dispose(&t_list);
                 return IFJ_ERR_SYNTAX;
             }
         }
@@ -635,14 +630,14 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         // else read another token
         else 
         {
-            if ((token = new_token())==NULL)
+            if ((token = new_token(garbages))==NULL)
             {
+                TL_Dispose(&t_list);
                 return IFJ_ERR_INTERNAL;
             }
             if ((code = lex_analyzer(input, token, big_string)) != 0)
             {
-                free(token);
-                token = NULL;
+                TL_Dispose(&t_list);
                 return code;
             }
         }
@@ -653,16 +648,18 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         return IFJ_ERR_SYNTAX;
     }
     /* FROM THIS PLACE, CALL EXPRESSION SYNTAX CHECK*/
-    if ((code = PSA(&t_list)) != 0)
+    if ((code = PSA(&t_list, garbages)) != 0)
     {
+        
+        TL_Dispose(&t_list);
         return code;
     }
     if (token->id == IFJ_T_EOF)
     {
         (*token_oldPtr)->next = token;
     }
-    *token_oldPtr = t_list.first->RPtr->content;    
-//    TL_Dispose(&t_list);
+    *token_oldPtr = t_list.first->content;  
+    free(t_list.first);  
     return 0;
 }
 
@@ -671,7 +668,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
  * or i may be start of "return" expression (in this case, i need to read "return"
  * token first)
  */
-int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
+int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     
     int code;
@@ -681,7 +678,7 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
     
     if (token_old->id == IFJ_T_VARIALBE) // possible start of assign
     {   
-        if ((token_new = new_token())==NULL)
+        if ((token_new = new_token(garbages))==NULL)
         {
             return IFJ_ERR_INTERNAL;
         }
@@ -694,7 +691,7 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
         }
         else if (token->id == IFJ_T_ASSIGN) // there must be '=' after variable
         {
-            if ((token_new = new_token())==NULL)
+            if ((token_new = new_token(garbages))==NULL)
             {
                 return IFJ_ERR_INTERNAL;
             }
@@ -706,12 +703,12 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
             else if (token_new->id == IFJ_T_ID)
             {
                 // assign of return value
-                return check_function_call (input, token_new, big_string);
+                return check_function_call (input, token_new, big_string, garbages);
             }
             else
             {
                 // assign from expression
-                return check_expression (input, &(token->RPtr), IFJ_T_SEMICOLON, true, big_string);
+                return check_expression (input, &(token->RPtr), IFJ_T_SEMICOLON, true, big_string, garbages);
             }
         }
         else
@@ -721,16 +718,16 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
     }
     else if (strcmp(&big_string->data[token_old->content], "if\0") == 0)
     {
-        return check_if_else (input, token_old, big_string);
+        return check_if_else (input, token_old, big_string, garbages);
     }
     else if (strcmp(&big_string->data[token_old->content], "while\0") == 0)
     {
-        return check_while(input, token_old, big_string);
+        return check_while(input, token_old, big_string, garbages);
     }
     else if (strcmp(&big_string->data[token_old->content], "return\0") == 0)
     {
         // there must be expression ending with semicolon
-        return check_expression (input, &(*token_oldPtr)->LPtr, IFJ_T_SEMICOLON, false, big_string);
+        return check_expression (input, &(*token_oldPtr)->LPtr, IFJ_T_SEMICOLON, false, big_string, garbages);
     }
 
     return IFJ_ERR_SYNTAX; // if control gets here, it is definitely error
@@ -741,33 +738,28 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
  * it checks only if there is input parameter list in between braces followed
  * by semicolon.
  */
-int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
+int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
     TokenPtr token = NULL;
     TokenPtr* ancestor = &(token_old->condition);
 
     // check, if there is openin brace '('
-    if ((token = new_token())==NULL)
+    if ((token = new_token(garbages))==NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
     if ((code = lex_analyzer(input, token, big_string)) != 0)
     {
-        free(token);
         return code;
     }
     if (token->id != IFJ_T_LB)
     {
-        free(token);
-        token = NULL;
         return IFJ_ERR_SYNTAX;
     }
 
     if ((code = lex_analyzer(input, token, big_string)) != 0)
     {
-        free(token);
-        token = NULL;
         return code;
     }
     while (1)
@@ -776,21 +768,18 @@ int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_stri
         {
             *ancestor = token;
             ancestor = &(token->next);
-            if ((token = new_token())==NULL)
+            if ((token = new_token(garbages))==NULL)
             {
                 return IFJ_ERR_INTERNAL;
             }
             if ((code = lex_analyzer(input, token, big_string)) != 0)
             {
-                free(token);
-                token = NULL;
                 return code;
             }
             if (token->id == IFJ_T_SEP)
             {
                 if ((code = lex_analyzer(input, token, big_string)) != 0)
                 {
-                    free(token);
                     return code;
                 }
                 if (!is_terminal(token->id))
@@ -812,32 +801,27 @@ int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_stri
     }       
     if ((code = lex_analyzer(input, token, big_string)) != 0)
     {
-        free(token);
-        token = NULL;
         return code;
     }
     if (token->id != IFJ_T_SEMICOLON)
     {
-        free(token);
-        token = NULL;
         return IFJ_ERR_SYNTAX;
     }
-    free(token);
     token = NULL;
     return 0;
 }
 
 // Checks syntax of while construction - condition folowed by statement list
-int check_while (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
+int check_while (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
 
-    if ((code = check_condition (input, token_old, big_string)) != 0)
+    if ((code = check_condition (input, token_old, big_string, garbages)) != 0)
     {
         return code;
     }
 
-    if ((code = check_stat_list (input, &token_old->LPtr, big_string)) != 0)
+    if ((code = check_stat_list (input, &token_old->LPtr, big_string, garbages)) != 0)
     {
         return code;
     }
@@ -850,23 +834,23 @@ int check_while (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
  * is correct conditon, statement list, "else" keyword and another statement
  * list.
  */
-int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
+int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
     TokenPtr token=NULL;
-    if ((token = new_token()) == NULL)
+    if ((token = new_token(garbages)) == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
 
     // condition
-    if ((code = check_condition (input, token_old, big_string)) != 0)
+    if ((code = check_condition (input, token_old, big_string, garbages)) != 0)
     {
         return code;
     }
 
     // than first statement list for case conditon == true
-    if ((code = check_stat_list (input, &token_old->LPtr, big_string)) != 0)
+    if ((code = check_stat_list (input, &token_old->LPtr, big_string, garbages)) != 0)
     {
         return code;
     }
@@ -875,19 +859,15 @@ int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
     
     if ((code = lex_analyzer (input, token, big_string)) != 0)
     {
-        free(token);
-        token = NULL;
         return code;
     }
     else if (strcmp(&big_string->data[token->content], "else\0") != 0)
     {
-        free(token);
-        token = NULL;
         return IFJ_ERR_SYNTAX;
     }
     
     // and statement list for case conditon != true
-    if ((code = check_stat_list (input, &token_old->RPtr, big_string)) != 0)
+    if ((code = check_stat_list (input, &token_old->RPtr, big_string, garbages)) != 0)
     {
         return code;
     }   
@@ -900,14 +880,14 @@ int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
  * This kind of statement list can be found after parameter list in function
  * definition, in cycles or in if-else control construction.
  */
-int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string)
+int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
 
     TokenPtr token = NULL;
     TokenPtr token_next = NULL;
     TokenPtr* ancestorPtr = token_oldPtr;
-    if ((token = new_token())==NULL)
+    if ((token = new_token(garbages))==NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
@@ -943,13 +923,13 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
             }
             else
             {
-                if((code = check_statement (input, ancestorPtr, big_string)) != 0)
+                if((code = check_statement (input, ancestorPtr, big_string, garbages)) != 0)
                 {
                     return code;
                 }
             }
             // read of next token
-            if ((token_next = new_token())==NULL)
+            if ((token_next = new_token(garbages))==NULL)
             {
                 return IFJ_ERR_INTERNAL;
             }
@@ -963,9 +943,7 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
             }
         } while (token->id != IFJ_T_RCB);
         *ancestorPtr = NULL;
-        free(token);
-        token = NULL;
-    }
+      }
     else // scope did not start with '}'
     {
         return IFJ_ERR_SYNTAX;
@@ -980,26 +958,22 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
  * some braces and it all end with closing brace ')'. Syntax of expression and
  * number of braces is controlled by check_expression().
  */
-int check_condition (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string)
+int check_condition (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
 
     TokenPtr token = NULL;
-    if ((token = new_token())==NULL)
+    if ((token = new_token(garbages))==NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
     if ((code = lex_analyzer(input, token, big_string)) != 0)
     {
-        free(token);
-        token = NULL;
         return code;
     }
     else if (token->id == IFJ_T_LB) // there must be '(' before expression
     {
-        free(token);
-        token = NULL;
-        return check_expression (input, &token_old->condition, IFJ_T_RB, false, big_string);
+        return check_expression (input, &token_old->condition, IFJ_T_RB, false, big_string, garbages);
     }
     return IFJ_ERR_SYNTAX;
 }

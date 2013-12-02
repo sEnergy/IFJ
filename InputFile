@@ -2,7 +2,12 @@
 
 //Hlavni telo programu
 
-$var1 = "Marcel Fiala";
+function def($a,$b)
+{
+    $r=3;
+}
+
+$var1 = "Marcel Fiala" + 12+45(43));
 $var2 = "Fiala";
 
 $x = put_string("\nJdeme testovat find_string:\n");

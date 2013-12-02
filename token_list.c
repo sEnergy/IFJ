@@ -38,7 +38,7 @@ int S_push(Stack_t* S, TokenPtr token)
     new_item->content = token;
     new_item->next = S->Top;
     S->Top = new_item;
-    return true;
+    return 0;
 }
 // top&pop
 TokenPtr S_top_pop(Stack_t* S)
@@ -67,6 +67,24 @@ void S_dispose(Stack_t* S)
     Stack_itemPtr next = S->Top->next;
     while (tmp != NULL)
     {
+        free(tmp);
+        tmp = next;
+        if (next != NULL) 
+        {
+            next = next->next;
+        }
+    }
+}
+
+// dispose stack & contnet
+void S_dispose_all(Stack_t* S)
+{
+    if (S_empty(S)) return;
+    Stack_itemPtr tmp = S->Top;
+    Stack_itemPtr next = S->Top->next;
+    while (tmp != NULL)
+    {
+        free(tmp->content);
         free(tmp);
         tmp = next;
         if (next != NULL) 
@@ -220,7 +238,6 @@ void TL_Dispose (TokenList *List)
     }
     else if (tmp->RPtr == NULL) // just one token
     {
-        free(List->last->content);
         free(List->last);
         List->first = List->active = List->last = NULL;
     }
@@ -228,13 +245,11 @@ void TL_Dispose (TokenList *List)
     {
         do // freeing tokens one by one
         {
-            tmp = tmp->RPtr;
-            free(tmp->LPtr->content);
+            tmp = tmp->RPtr;;
             free(tmp->LPtr);
         } while (tmp->RPtr != NULL);
 
         // freeing last token manually
-        free(List->last->content);
         free(List->last);
         List->first = List->active = List->last = NULL;
     }

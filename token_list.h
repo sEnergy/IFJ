@@ -66,6 +66,9 @@ TokenPtr S_top(Stack_t* S);
 //remove top item of the stack
 void S_pop(Stack_t* S);
 
+//free all item of the stack and its contentnt
+void S_dispose_all(Stack_t*s);
+
 //remove all item of the stack
 void S_dispose(Stack_t* S);
 // initializes token list
