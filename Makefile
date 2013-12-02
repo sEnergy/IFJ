@@ -11,7 +11,7 @@
 
 NAME=ifj_070
 CC=gcc
-CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
+CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic -g
 ARCHIVE_NAME=xvecer17
 
 OBJFILES=main.o syntax_analyzer.o lex_analyzer.o ial.o token_list.o \
@@ -38,7 +38,7 @@ debug: dep link clndep
 
 # creating dependencies list
 dep:
-    $(CC) -MM *.c > dependencies.list
+	$(CC) -MM *.c > dependencies.list
 
 # include of created dependencies
 -include dependencies.list
@@ -49,22 +49,22 @@ $(NAME): $(OBJFILES)
 
 #run
 run:
-    ./$(NAME) InputFile
+	./$(NAME) InputFile
 
 # valgrind test
 grind:
-    valgrind $(VGPARAMS) ./$(NAME) InputFile
+	valgrind $(VGPARAMS) ./$(NAME) InputFile
 
 # cleaning unnecessary files
 clean:
-    -rm -r dependencies.list $(OBJFILES) $(NAME)
+	-rm -r dependencies.list $(OBJFILES) $(NAME)
 
 # deleting dependencies list
 clndep:
-    -rm dependencies.list
+	-rm dependencies.list
 
 # pack
 pack:
-    zip -r $(ARCHIVE_NAME).zip *.c *.h Makefile
+	zip -r $(ARCHIVE_NAME).zip *.c *.h Makefile
 
 ### End of file Makefile ###
