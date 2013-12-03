@@ -44,7 +44,7 @@ int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, B
 void changeable_token_Destroy (void);
 
 /* core function */
-int interpreter (BUFFER_STRUCT buffer, TokenPtr token);
+int interpreter (BUFFER_STRUCT buffer, TokenPtr token, function_hashtablePtr* function_hashtable);
 
 /* support functions */
 int is_true (changeable_tokenPtr change_token);
@@ -52,21 +52,21 @@ void print_ASS (TokenPtr token, int number);
 int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, int number_of_params);
 
 /* leaf functions */
-int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
+int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable);
 
 int var_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
 int number_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer);
-int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
-int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
-int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
-int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable);
+int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable);
+int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable);
+int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable);
+int functions (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable);
 
 
 /* root functions */
-int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer);
+int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer, function_hashtablePtr* function_hashtable);
 
-int assignment (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer);
-int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer);
-int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer);
+int assignment (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer, function_hashtablePtr* function_hashtable);
+int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer, function_hashtablePtr* function_hashtable);
+int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer, function_hashtablePtr* function_hashtable);
 
 #endif

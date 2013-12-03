@@ -1,21 +1,32 @@
-<?php //Program 1: Vypocet faktorialu (iterativne)
+<?php
 
 //Hlavni telo programu
-
-function def($a,$b)
+$z = put_string("Zadejte cislo pro vypocet faktorialu\n");
+$a = get_string();
+$a = intval($a);
+//Definice funkce pro vypocet hodnoty faktorialu
+function factorial($n)
 {
-    $r=3;
+if ($n < 2)
+{
+$result = 1;
 }
-
-$var1 = "Marcel Fiala" + 12+45(43));
-$var2 = "Fiala";
-
-$x = put_string("\nJdeme testovat find_string:\n");
-$result = find_string($var1, $var2);
-$x = put_string("Result:", $result, "\n");
-
-$x = put_string("\nJdeme testovat get_substring:\n");
-$result = get_substring($var1, 0, 6);
-$x = put_string("Result:", $result, "\n");
-
-
+else
+{
+$decremented_n = $n - 1;
+$temp_result = factorial($decremented_n);
+$result = $n * $temp_result;
+}
+return $result;
+}
+if ($a < 0)
+//Pokracovani hlavniho tela programu
+{
+$message = "Faktorial nelze spocitat\n";
+}
+else
+{
+$vysl = factorial($a);
+$message = "Vysledek je: ". $vysl ."\n";
+}
+$zzz = put_string($message);

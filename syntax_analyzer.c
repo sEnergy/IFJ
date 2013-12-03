@@ -357,8 +357,10 @@ int syntax_analyzer (char* input_filename)
     // starts interpret
     if (code == 0)
     {
-        code = interpreter(token_content, token);
+        code = interpreter(token_content, token, FHTable);
     }
+    
+    function_hashtable_free(FHTable);
     
     // free all allocated memory, close file
     S_dispose_all(&garbages);
