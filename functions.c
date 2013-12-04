@@ -94,7 +94,7 @@ int boolval(changeable_tokenPtr token)
         else error_code = IFJ_ERR_OTHER_RUNTIME;
 
     }
-    else error_code = IFJ_IFJ_ERR_OTHER_RUNTIME;
+    else error_code = IFJ_ERR_OTHER_RUNTIME;
     return error_code;
 }
 

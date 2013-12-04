@@ -20,8 +20,9 @@ typedef struct changeable_token
 {
     unsigned int id;
     char* data;
-    struct changeable_token* next;
-    struct changeable_token* next_params;    
+    struct changeable_token* next;			//next for deallocation
+    struct changeable_token* next_params;	//next for parametrs in functions
+    struct changeable_token* next_stack;	//next for stack (return in functions)
 } *changeable_tokenPtr;
 
 /* function hashtable */

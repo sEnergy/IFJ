@@ -385,11 +385,7 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
 int functions (TokenPtr token, changeable_tokenPtr change_token,    
     BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable)
 {
-    if (DEBUGGING) printf("functions: %d\n", token->id);
-
     char* string = &(buffer->data[token->content]);
-
-    if (DEBUGGING) printf("%s+++++++++++\n", string);
 
     int error = 0;
     /* BUILD IN FUNCTIONS */
@@ -496,7 +492,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
         
         //searching function in function hashtable
         function_hashtablePtr search = function_hashtable_search (function_hashtable, string);
-        if (strcmp(search->name, string) == 0)
+        if (search != NULL) //checking if it is found
         {
             TokenPtr my_token = search->function_token->condition;
             int number_of_params = 0; //number of params in function
@@ -507,7 +503,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             }
             
             changeable_tokenPtr tmp_change_token = changeable_token_Init();
-            if (change_token == NULL)
+            if (tmp_change_token == NULL)
             {
                 return IFJ_ERR_INTERNAL;
             }
@@ -541,10 +537,10 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             
             my_token = search->function_token->LPtr;
             
-            while (my_token != NULL && (my_token->id != IFJ_T_KEYWORD && 
-                strcmp(&(buffer->data[my_token->content]), "return")))
+            while (my_token != NULL && !(my_token->id == IFJ_T_KEYWORD 
+				&& strcmp(&(buffer->data[my_token->content]), "return") == 0))
             {
-                if ((error = call_root_function (my_token, hashtable, buffer, function_hashtable)) != 0)
+                if ((error = call_root_function (my_token, new_hashtable, buffer, function_hashtable)) != 0)
                 {
                     hashtable_free(new_hashtable);
                     return error;
@@ -560,11 +556,11 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             else //return
             {
                 error = call_leaf_function(my_token->LPtr, change_token, buffer, new_hashtable, function_hashtable);
-                change_token->id = IFJ_T_KEYWORD;
             }
             
             hashtable_free(new_hashtable);
         }
+        //function not defined
         else
         {
             return IFJ_ERR_UNDEF_REDEF;
@@ -614,7 +610,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
                 error = var_function (my_token, change_token, buffer, hashtable);
                 break;
             default:
-                error = IFJ_ERR_OTHER_RUNTIME;
+                error = 26;//IFJ_ERR_OTHER_RUNTIME;
                 break;
             }
             change_token->next_params = NULL;
@@ -645,7 +641,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
                 error = var_function (my_token, change_token_new, buffer, hashtable);
                 break;
             default:
-                error = IFJ_ERR_OTHER_RUNTIME;
+                error = 26;//IFJ_ERR_OTHER_RUNTIME;
                 break;
             }
             change_token_active = change_token_new;
@@ -937,7 +933,6 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
 
 int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable)
 {
-    if (DEBUGGING) printf("concatenate: %d\n", token->id);
     /* Allocating space for opperands */
     changeable_tokenPtr change_token_left;
     if ((change_token_left = changeable_token_Init()) == NULL)
@@ -950,9 +945,13 @@ int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFF
         return IFJ_ERR_INTERNAL;
     }
     int error = call_leaf_function (token->LPtr, change_token_left, buffer, hashtable, function_hashtable);
+    int str_left = strlen(change_token_left->data);
+    int str_right;
+    
     if (!error)
     {
         error = call_leaf_function (token->RPtr, change_token_right, buffer, hashtable, function_hashtable);
+        str_right = strlen(change_token_right->data);
     }
     // get both operands to string if possible
     if (!error)
@@ -963,22 +962,28 @@ int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFF
             error = strval(change_token_right);
         }
     }
-    char* result_string;
+
+    char* result_string = malloc(sizeof(char)* (str_left + str_right + 1));
+    //strcat needs nulled array
+    for (int i = 0; i <= (str_left + str_right); ++i)
+    {
+        result_string[i] = '\0';
+    }
     if (!error)
     {
-        result_string = malloc(sizeof(char)* (strlen(change_token_left->data) + strlen(change_token_right->data) + 1));
         if (result_string == NULL)
         {
             return IFJ_ERR_INTERNAL;
         }
-        //contatenation of both tokens into result_string
         strcat(result_string, change_token_left->data);
         strcat(result_string, change_token_right->data);
         // update data
         error = changeable_token_update(change_token, result_string);
-        free (result_string);
-        result_string = NULL;
+        change_token->id = IFJ_T_STRING;
     }
+    free (result_string);
+    result_string = NULL;
+    
     return error;
 }
 
@@ -1116,6 +1121,8 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
             // bad types
             else
             {
+				printf("left %s %d\n" ,change_token_left->data, change_token_left->id);
+				printf("right %s %d\n" ,change_token_right->data, change_token_right->id);
                 error = IFJ_ERR_TYPE_COMPATIBILITY;
             }
         } // end of "*", "+", "-", "/"
@@ -1185,10 +1192,12 @@ int assignment (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer
         error = changeable_token_Insert (change_token_left, token->LPtr, buffer);
     }
     /* first check, if it even should try to insert, then it checks if the allocations in insert was fine */
-    if ((!error) && (insert_item_hashtable (hashtable, change_token_left->data, change_token_right->id, change_token_right->data)))
+    if ((!error) && (insert_item_hashtable (hashtable, change_token_left->data, 
+		change_token_right->id, change_token_right->data)))
     {
         error = IFJ_ERR_INTERNAL;
     }
+    //printf("Vkladam do tabulky \"%s\" \"%d\" \"%s\"\n", change_token_left->data, change_token_right->id, change_token_right->data);
     if (DEBUGGING) printf("assignment end: %d\n", token->id);
     return error;
 }
@@ -1331,7 +1340,7 @@ int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUC
     if (DEBUGGING) printf("root: %d\n", token->id);
 
     /* error should be always changed */
-    int error = IFJ_ERR_OTHER_RUNTIME;
+    int error = 13;//IFJ_ERR_OTHER_RUNTIME;
 
     switch (token->id)
     {
@@ -1346,11 +1355,10 @@ int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUC
             {
                 error = if_function (token, hashtable, buffer, function_hashtable);
             }
-            if (strcmp(&(buffer->data[token->content]), "while") == 0)
+            else if (strcmp(&(buffer->data[token->content]), "while") == 0)
             {
                 error = while_function (token, hashtable, buffer, function_hashtable);
             }
-            /** PRIDAT RETURN */
             break;
     }
 
@@ -1422,8 +1430,8 @@ int interpreter (BUFFER_STRUCT buffer, TokenPtr token, function_hashtablePtr* fu
     {
         return IFJ_ERR_INTERNAL;
     }
-    while(my_token->id != IFJ_T_EOF && (my_token->id != IFJ_T_KEYWORD 
-        && strcmp(&(buffer->data[my_token->content]), "return")))
+    while(my_token->id != IFJ_T_EOF && !(my_token->id == IFJ_T_KEYWORD 
+        && strcmp(&(buffer->data[my_token->content]), "return") == 0))
     {
         if ((error = call_root_function (my_token, hashtable, buffer, function_hashtable)) != 0)
         {
