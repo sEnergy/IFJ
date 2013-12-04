@@ -139,7 +139,7 @@ TokenPtr Lclosest_term(TokenList* list)
  * Function perform precedence syntax analyze and create abstract syntax 
  * tree of the operations, that are ordered accoring to precedence table
 */
-int PSA(TokenList* list, Stack_t* garbages)
+int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     Stack_t stack;
     TokenPtr start;
@@ -191,7 +191,7 @@ int PSA(TokenList* list, Stack_t* garbages)
             break;
         }
 // Simulation of the rule E->i
-        if (is_terminal(list->active->content->id)) 
+        if (is_terminal(list->active->content, big_string)) 
         {
             list->active->is_expression = true;
             TL_ActiveNext(list);
@@ -510,7 +510,7 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string,
     }
     while (1)
     {
-        if (is_terminal(token->id))
+        if (is_terminal(token, big_string))
         {
             *ancestor = token;
             ancestor = &(token->next);
@@ -528,7 +528,7 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string,
                 {
                     return code;
                 }
-                if (!is_terminal(token->id))
+                if (!is_terminal(token, big_string))
                 {
                     return IFJ_ERR_SYNTAX;
                 }
@@ -605,7 +605,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
             }
         }
         // if valid token (literal or variable) ir read, save it to thel list
-        else if ((is_operator(token->id) || is_terminal(token->id)
+        else if ((is_operator(token) || is_terminal(token, big_string)
             || token->id == IFJ_T_RB || token->id == IFJ_T_LB) && token->id != IFJ_T_ASSIGN)
         {
             if (token->id == IFJ_T_LB)
@@ -650,7 +650,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
         return IFJ_ERR_SYNTAX;
     }
     /* FROM THIS PLACE, CALL EXPRESSION SYNTAX CHECK*/
-    if ((code = PSA(&t_list, garbages)) != 0)
+    if ((code = PSA(&t_list, big_string, garbages)) != 0)
     {
         
         TL_Dispose(&t_list);
@@ -766,7 +766,7 @@ int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_stri
     }
     while (1)
     {
-        if (is_terminal(token->id))
+        if (is_terminal(token, big_string))
         {
             *ancestor = token;
             ancestor = &(token->next);
@@ -784,7 +784,7 @@ int check_function_call (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_stri
                 {
                     return code;
                 }
-                if (!is_terminal(token->id))
+                if (!is_terminal(token, big_string))
                 {
                     return IFJ_ERR_SYNTAX;
                 }
@@ -975,9 +975,13 @@ int check_condition (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, 
 }
 
 // if token is variable or literal, return true
-bool is_terminal (int token)
+bool is_terminal (TokenPtr token, BUFFER_STRUCT big_string)
 {
-    if (IFJ_T_VARIALBE <= token && token <= IFJ_T_STRING)
+    if ((IFJ_T_VARIALBE <= token->id && token->id <= IFJ_T_STRING)
+        || (token->id == IFJ_T_KEYWORD && 
+                ((strcmp(&big_string->data[token->content],"true") == 0)
+                || (strcmp(&big_string->data[token->content],"false") == 0)
+                || (strcmp(&big_string->data[token->content],"null") == 0))))
     {
         return true;
     }
@@ -988,9 +992,9 @@ bool is_terminal (int token)
 }
 
 // if token id corresponds with operator that could be in expression, return true
-bool is_operator (int token)
+bool is_operator (TokenPtr token)
 {
-    if ((IFJ_T_ASSIGN <= token && token <= IFJ_T_NOT_SUPER_EQUAL))
+    if ((IFJ_T_ASSIGN <= token->id && token->id <= IFJ_T_NOT_SUPER_EQUAL))
     {
         return true;
     }

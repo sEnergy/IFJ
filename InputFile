@@ -4,14 +4,20 @@ $a = get_string();
 $a = intval($a);
 
 function bzzz ($a) {
-if ($a < 2)
+if ("")
 {
-	return 2;
+	
 }
 else
 {
-	return 3;
+	
 }
 }
 $b = bzzz($a);
 $z = put_string($b, "\n");
+if ($b > 2)
+{
+    $s = put_string($b, "\n");
+}
+else
+{}

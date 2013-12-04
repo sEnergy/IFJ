@@ -23,7 +23,7 @@
 
 
 //generate AST using PSA table for defined rules
-int PSA(TokenList* list, Stack_t* garbages);
+int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages);
 
 //Return left-closest term to active on input
 TokenPtr Lclosest_term(TokenList* list);
@@ -112,10 +112,10 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
 
 int check_while (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages);
 // if token is variable or literal, return true
-bool is_terminal (int token_id);
+bool is_terminal (TokenPtr token, BUFFER_STRUCT big_string);
 
 // if token id corresponds with operator that could be in expression, return true
-bool is_operator (int token_id);
+bool is_operator (TokenPtr token);
 
 #endif
 
