@@ -31,6 +31,10 @@
  */
 changeable_tokenPtr first_changeable_token = NULL;
 
+//for return in if or while
+changeable_tokenPtr return_changeable_token = NULL;
+int INTERRUPT = 1;
+
 //DEBUGGING - 0 OFF, 1 SMALL INFO, 2 LARGE INFO
 int DEBUGGING = 0;
 
@@ -537,7 +541,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             
             my_token = search->function_token->LPtr;
             
-            while (my_token != NULL && !(my_token->id == IFJ_T_KEYWORD 
+            while (INTERRUPT && my_token != NULL && !(my_token->id == IFJ_T_KEYWORD 
 				&& strcmp(&(buffer->data[my_token->content]), "return") == 0))
             {
                 if ((error = call_root_function (my_token, new_hashtable, buffer, function_hashtable)) != 0)
@@ -547,17 +551,24 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
                 }
                 my_token = my_token->next;
             }
-            
-            if (my_token == NULL)
+            if (!INTERRUPT)
             {
-                changeable_token_update(change_token, "null");
-                change_token->id = IFJ_T_KEYWORD;
+                changeable_token_update(change_token, return_changeable_token->data);
+                change_token->id = return_changeable_token->id;
+                INTERRUPT = 1;
             }
-            else //return
+            else
             {
-                error = call_leaf_function(my_token->LPtr, change_token, buffer, new_hashtable, function_hashtable);
+                if (my_token == NULL)
+                {
+                    changeable_token_update(change_token, "null");
+                    change_token->id = IFJ_T_KEYWORD;
+                }
+                else //return
+                {
+                    error = call_leaf_function(my_token->LPtr, change_token, buffer, new_hashtable, function_hashtable);
+                }
             }
-            
             hashtable_free(new_hashtable);
         }
         //function not defined
@@ -661,7 +672,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
 
 int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable)
 {
-    if (DEBUGGING) printf("bool: %d\n", token->id);
+    if (DEBUGGING == 2) printf("bool: %d\n", token->id);
 
     /* Allocating space for opperands */
     changeable_tokenPtr change_token_left;
@@ -674,6 +685,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
     {
         return IFJ_ERR_INTERNAL;
     }
+    /* HERE IS ERROR DEFINED */
     int error = call_leaf_function (token->LPtr, change_token_left, buffer, hashtable, function_hashtable);
     if (!error)
     {
@@ -687,7 +699,6 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
         int equal = 0;
         int less = 0;
         int greater = 0;
-        int error = 0;
         //different token type
         if ((change_token_left->id != change_token_right->id))
         {
@@ -917,17 +928,24 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
 
             switch (token->id)
             {
+                if (DEBUGGING == 2) printf("7abool: %d\n", token->id);
                 case IFJ_T_SUPER_EQUAL:     // '==='
+                    if (DEBUGGING == 2) printf("7bbool: %d\n", token->id);
                     error = changeable_token_update(change_token, "false");
                     break;
                 case IFJ_T_NOT_SUPER_EQUAL: // '!=='
+                    if (DEBUGGING == 2) printf("7cbool: %d\n", token->id);
                     error = changeable_token_update(change_token, "true");
+                    break;
+                default:
+                    if (DEBUGGING == 2) printf("7dbool: %d\n", token->id);
+                    error = IFJ_ERR_TYPE_COMPATIBILITY;
                     break;
             }
         }
     }
-
-    if (DEBUGGING) printf("bool end: %d\n", token->id);
+    
+    if (DEBUGGING == 2) printf("bool end: %d\n", token->id);
     return error;
 }
 
@@ -1215,7 +1233,7 @@ int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT bu
         return IFJ_ERR_INTERNAL;
     }
 
-    while (!error)
+    while (INTERRUPT && !error)
     {
         //check condition
         error = call_leaf_function (token->condition, change_token, buffer, hashtable, function_hashtable);
@@ -1234,10 +1252,17 @@ int while_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT bu
                         TokenPtr my_token = token->LPtr;
                         while(my_token != NULL)
                         {
+                            //return in cycle
+                            if (my_token->id == IFJ_T_KEYWORD && strcmp(&(buffer->data[my_token->content]), "return") == 0)
+                            {
+                                error = call_leaf_function (my_token->LPtr, change_token, buffer, hashtable, function_hashtable);
+                                return_changeable_token = change_token;
+                                INTERRUPT = 0;
+                                break;
+                            }
                             if ((error = call_root_function (my_token, hashtable, buffer, function_hashtable)) != 0)
                             {
-                                changeable_token_Destroy();
-                                return error;
+                                break;
                             }
                             my_token = my_token->next;
                         }
@@ -1284,10 +1309,17 @@ int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffe
                     TokenPtr my_token = token->LPtr;
                     while(my_token != NULL)
                     {
+                        //return in cycle
+                        if (my_token->id == IFJ_T_KEYWORD && strcmp(&(buffer->data[my_token->content]), "return") == 0)
+                        {
+                            error = call_leaf_function (my_token->LPtr, change_token, buffer, hashtable, function_hashtable);
+                            return_changeable_token = change_token;
+                            INTERRUPT = 0;
+                            break;
+                        }
                         if ((error = call_root_function (my_token, hashtable, buffer, function_hashtable)) != 0)
                         {
-                            changeable_token_Destroy();
-                            return error;
+                            break;
                         }
                         my_token = my_token->next;
                     }
@@ -1300,10 +1332,17 @@ int if_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffe
                     TokenPtr my_token = token->RPtr;
                     while(my_token != NULL)
                     {
+                        //return in cycle
+                        if (my_token->id == IFJ_T_KEYWORD && strcmp(&(buffer->data[my_token->content]), "return") == 0)
+                        {
+                            error = call_leaf_function (my_token->LPtr, change_token, buffer, hashtable, function_hashtable);
+                            return_changeable_token = change_token;
+                            INTERRUPT = 0;
+                            break;
+                        }
                         if ((error = call_root_function (my_token, hashtable, buffer, function_hashtable)) != 0)
                         {
-                            changeable_token_Destroy();
-                            return error;
+                            break;
                         }
                         my_token = my_token->next;
                     }
@@ -1430,7 +1469,7 @@ int interpreter (BUFFER_STRUCT buffer, TokenPtr token, function_hashtablePtr* fu
     {
         return IFJ_ERR_INTERNAL;
     }
-    while(my_token->id != IFJ_T_EOF && !(my_token->id == IFJ_T_KEYWORD 
+    while(INTERRUPT && my_token->id != IFJ_T_EOF && !(my_token->id == IFJ_T_KEYWORD 
         && strcmp(&(buffer->data[my_token->content]), "return") == 0))
     {
         if ((error = call_root_function (my_token, hashtable, buffer, function_hashtable)) != 0)
