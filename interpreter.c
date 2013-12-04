@@ -1226,7 +1226,7 @@ int assignment (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUCT buffer
     {
         error = IFJ_ERR_INTERNAL;
     }
-    printf("Vkladam do tabulky \"%s\" \"%d\" \"%s\"\n", change_token_left->data, change_token_right->id, change_token_right->data);
+    //printf("Vkladam do tabulky \"%s\" \"%d\" \"%s\"\n", change_token_left->data, change_token_right->id, change_token_right->data);
     if (DEBUGGING) printf("assignment end: %d\n", token->id);
     return error;
 }
