@@ -307,69 +307,37 @@ hashtable_item** copy_hashtable (hashtable_item** hashtable)
 
 
 /**********************************************************************
-*                            MERGE SORT                               *
+*                            SHELL SORT                               *
 ***********************************************************************/
 
-// merge sort   - divide and conquer algorithm
-//              - sorting chars in string (ordinal value - lowest to highest)
+// shell_sort   - sorting chars in string (ordinal value - lowest to highest)
 // string_array - string to sort
-// output       - temporary output array
-// first        - starting index
-// last         - ending index
-// output overwrites string_array
+// size         - size of string
 
-void merge_sort(char string_array[], char output[], int first, int last)
+
+char *shell_sort(char array[], int size)
 {
-    if(first == last) return;
-    int middle = (first + last) / 2;
-    merge_sort(string_array, output, first, middle);
-    merge_sort(string_array, output, middle + 1, last);
-    merge(string_array, output, first, last);
-
-    for(int i = first; i<=last;i++)
+    if(size == 0 || size == 1) return array;
+    int i = 0;
+    int j = 0;
+    int gap = size / 2;
+    while (gap > 0) 
     {
-        string_array[i]=output[i];
-    }
-}
-
-// merge        - merging divided lists
-//              - lists will be sorted
-// string_array - string to sort
-// output       - temporary output array
-// first        - starting index
-// last         - ending index
-
-void merge(char string_array[], char output[], int first, int last)
-{
-    int middle = (first + last) / 2;
-    int first_index = first;
-    int last_index = middle + 1;
-    int out_index = first;
-
-    while(first_index <= middle && last_index <= last)
-    {
-        if(string_array[first_index] >= string_array[last_index])
+        for(i = gap;i<size;i++)
         {
-            output[out_index] = string_array[last_index++];
-        }
-        else
-        {
-            output[out_index] = string_array[first_index++];
-        }
-        out_index++;
-    }
+            j = i-gap;
+            while(j>=0 && array[j] > array[j+gap])
+            {
+                char tmp = array[j];
+                array[j] = array[j+gap];
+                array[j+gap] = tmp;
+                j = j - gap;
+            }
 
-    while(last_index <= last)
-    {
-        output[out_index] = string_array[last_index++];
-        out_index++;
+        }
+        gap = gap / 2;
     }
-
-    while(first_index <= middle)
-    {
-        output[out_index] = string_array[first_index++];
-        out_index++;
-    }
+    return array;
 }
 
 /*** End of file ial.c ***/

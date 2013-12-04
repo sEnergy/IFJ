@@ -473,17 +473,15 @@ int sort_string(changeable_tokenPtr token)
     int error_code = 0;
     if(token->id == IFJ_T_STRING)
     {
-        int length = strlen(token->data);
-        if(length == 0 || length == 1) return 0;
-
+        int length = strlen(token->data);    
         char *tmp_data = token->data;
         char *out = NULL;
-        if((out = (char*)malloc(sizeof(char) * length + 1)) == NULL)
+        if((out = (char*)malloc(sizeof(char) * length + 1)) == NULL) 
         {
             return IFJ_ERR_INTERNAL;
         }
-        merge_sort(tmp_data, out, 0, length - 1);
-        error_code = changeable_token_update(token, tmp_data);
+        out = shell_sort(tmp_data, length);
+        error_code = changeable_token_update(token, out);
         free(out);
         out = NULL;
     }
