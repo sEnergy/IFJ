@@ -339,6 +339,9 @@ int call_leaf_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER
         case IFJ_T_STRING:          //"10ahoj"
             error = number_function (token, change_token, buffer);
             break;
+        case IFJ_T_KEYWORD:         //null, false, true
+            error = number_function (token, change_token, buffer);
+            break;
         case IFJ_T_VARIALBE:        //$ahoj
             error = var_function (token, change_token, buffer, hashtable);
             break;
@@ -496,6 +499,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
         
         //searching function in function hashtable
         function_hashtablePtr search = function_hashtable_search (function_hashtable, string);
+        
         if (search != NULL) //checking if it is found
         {
             TokenPtr my_token = search->function_token->condition;
@@ -517,6 +521,10 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             {
                 return IFJ_ERR_MISSING_PARAMETER;
             }
+            if(tmp_change_token->data == NULL)
+            {
+                return IFJ_ERR_UNDECLARED_VARIABLE;
+            }            
             
             //creating new hashtable for inner function
             hashtable_item** new_hashtable = hashtable_init();
@@ -526,7 +534,6 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             }
             
             my_token = search->function_token->condition;
-
             while (tmp_change_token != NULL)
             {
                 if (insert_item_hashtable (new_hashtable, &(buffer->data[my_token->content]), 
@@ -620,8 +627,11 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
             case IFJ_T_VARIALBE:        //$ahoj
                 error = var_function (my_token, change_token, buffer, hashtable);
                 break;
+            case IFJ_T_KEYWORD:
+				error = number_function (my_token, change_token, buffer);
+				break;
             default:
-                error = 26;//IFJ_ERR_OTHER_RUNTIME;
+                error = IFJ_ERR_OTHER_RUNTIME;
                 break;
             }
             change_token->next_params = NULL;
@@ -651,6 +661,9 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
             case IFJ_T_VARIALBE:        //$ahoj
                 error = var_function (my_token, change_token_new, buffer, hashtable);
                 break;
+            case IFJ_T_KEYWORD:
+				error = number_function (my_token, change_token, buffer);
+				break;
             default:
                 error = 26;//IFJ_ERR_OTHER_RUNTIME;
                 break;
@@ -950,7 +963,7 @@ int boolean_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_S
 }
 
 int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUCT buffer, hashtable_item** hashtable, function_hashtablePtr* function_hashtable)
-{
+{    
     /* Allocating space for opperands */
     changeable_tokenPtr change_token_left;
     if ((change_token_left = changeable_token_Init()) == NULL)
@@ -963,13 +976,10 @@ int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFF
         return IFJ_ERR_INTERNAL;
     }
     int error = call_leaf_function (token->LPtr, change_token_left, buffer, hashtable, function_hashtable);
-    int str_left = strlen(change_token_left->data);
-    int str_right;
-    
     if (!error)
     {
         error = call_leaf_function (token->RPtr, change_token_right, buffer, hashtable, function_hashtable);
-        str_right = strlen(change_token_right->data);
+
     }
     // get both operands to string if possible
     if (!error)
@@ -980,7 +990,8 @@ int concatenate_function (TokenPtr token, changeable_tokenPtr change_token, BUFF
             error = strval(change_token_right);
         }
     }
-
+    int str_left = strlen(change_token_left->data);
+    int str_right = strlen(change_token_right->data);
     char* result_string = malloc(sizeof(char)* (str_left + str_right + 1));
     //strcat needs nulled array
     for (int i = 0; i <= (str_left + str_right); ++i)
