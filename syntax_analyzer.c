@@ -904,13 +904,7 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
         {
             return code;
         }
-        // this is illegal - the scope must not be empty ("{}")
-        else if (token->id == IFJ_T_RCB)
-        {
-            return IFJ_ERR_SYNTAX;
-        }
-
-        do // until the end of scope '}'
+        while (token->id != IFJ_T_RCB) // until the end of scope '}'
         {
             /*
              * Only variable, if-else, while or return is start of statement.
@@ -943,9 +937,9 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
             {
                 return code;
             }
-        } while (token->id != IFJ_T_RCB);
+        }
         *ancestorPtr = NULL;
-      }
+    }
     else // scope did not start with '}'
     {
         return IFJ_ERR_SYNTAX;
