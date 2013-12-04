@@ -475,15 +475,9 @@ int sort_string(changeable_tokenPtr token)
     {
         int length = strlen(token->data);    
         char *tmp_data = token->data;
-        char *out = NULL;
-        if((out = (char*)malloc(sizeof(char) * length + 1)) == NULL) 
-        {
-            return IFJ_ERR_INTERNAL;
-        }
+        char *out = shell_sort(tmp_data, length);
         out = shell_sort(tmp_data, length);
         error_code = changeable_token_update(token, out);
-        free(out);
-        out = NULL;
     }
     else error_code = IFJ_ERR_OTHER_RUNTIME;
     return error_code;
@@ -521,6 +515,7 @@ int get_substring (changeable_tokenPtr token)
     tmp[i_dest] = '\0';
     code = changeable_token_update (token, tmp);
     free(tmp);
+    tmp = NULL;
     }
     return code;
 }
