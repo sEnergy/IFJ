@@ -21,6 +21,8 @@
 #define IFJ_SYNTAX_DEF_BUFF_SIZE 20
 #define IFJ_OPEN_TAG_SIZE 6
 
+//check, if there are two same parameters in function declaration
+int check_same_parameters(TokenPtr token,BUFFER_STRUCT big_string);
 
 //generate AST using PSA table for defined rules
 int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages);

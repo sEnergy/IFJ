@@ -44,7 +44,28 @@ TokenPtr new_token(Stack_t* garbages)
     return token;
 }
     
-//jebnut ma ide z tohto
+/*
+ * Function check, if there are not same parameters in function definiton.
+ */
+int check_same_parameters(TokenPtr token,BUFFER_STRUCT big_string)
+{
+    TokenPtr active = token;
+    TokenPtr controlled;
+    while(active != NULL)
+    {
+        controlled = active->next;
+        while(controlled != NULL)
+        {
+            if(strcmp(&big_string->data[active->content],&big_string->data[controlled->content]) == 0)
+            {
+                return IFJ_ERR_OTHER_RUNTIME;
+            }
+            controlled = controlled->next;
+        }
+        active = active->next;
+    }
+    return 0;
+}
 
 /*
  * Function apply defined rules on input and check errors.
@@ -551,7 +572,10 @@ int check_param_list (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string,
         }
         break;
     }       
-    token = NULL;
+    if((code = check_same_parameters(token_old->condition, big_string)) != 0)
+    {
+        return code;
+    }
     return 0;
 }
 

@@ -243,6 +243,11 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                                     c = '"';
                                     break;
                                 }
+                                tmp_buffer[1] = fgetc(input);
+                                if (tmp_buffer[1] <=31)
+                                {
+                                    return IFJ_ERR_LEXICAL;
+                                }
                                 if (! is_hexadecimal(tmp_buffer[1]))
                                 {
                                     if ((write_c(buffer,'\\') != 0)
