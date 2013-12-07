@@ -180,8 +180,14 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
 // Create start and end terminals and joint it to the input.
     start->id = IFJ_T_MOD;
     end->id = IFJ_T_MOD;
-    TL_Insert_Last(list,end);
-    TL_Insert_First(list,start);
+    if ((code = TL_Insert_Last(list,end)) != 0)
+    {
+        return code;
+    }
+    if ((code = TL_Insert_First(list,start)) != 0)
+    {
+        return code;
+    }
     TL_ActiveReset(list);
     TL_ActiveNext(list);
     while (1)
@@ -207,13 +213,13 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
                 break;
             case 3:
                 TL_ActiveNext(list);
-                continue;
+                break;
             case 2:
                 if ((code = work(&stack,list)) != 0)
                 {
                     return code;
                 }
-                continue;
+                break;
             case 1:
 // Stack is stopper. < character in slides.
                 if ((code = S_push(&stack,left_closest_term)) != 0)
@@ -221,7 +227,7 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
                     return IFJ_ERR_INTERNAL;
                 }
                 TL_ActiveNext(list);
-                continue;
+                break;
             case 0:            
                 return IFJ_ERR_SYNTAX;
                 break;

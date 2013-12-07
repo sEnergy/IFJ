@@ -1,7 +1,5 @@
-<?php
+<?php 
 
-/* Program 9: Testovani bloku kodu */
-
-$a = "eleanor";
-$b = sort_string($a);
-$x = put_string($b, " ", $a, "\n");
+$x = "\d$";
+$x = $x."\n";
+$x= put_string($x);

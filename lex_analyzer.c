@@ -55,14 +55,11 @@ int write_c(BUFFER_STRUCT buffer, char c)
     return 0;
 }
 
-int is_hexadecimal(char* str)
+int is_hexadecimal(char c)
 {
-    for (int i=0; str[i] != '\0'; i++)
-    {
-        if (!(isdigit(str[i]) || (str[i] >= 'A' && str[i] <= 'F') ||
-        (str[i] >= 'a' && str[i] <= 'f')))
+    if (!(isdigit(c) || (c >= 'A' && c <= 'F') ||
+        (c >= 'a' && c <= 'f')))
             return 0;
-    }
     return 1;
 }
 void buffer_next_token(BUFFER_STRUCT buffer)
@@ -183,6 +180,10 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                     case '\\':
                     {
                         c = fgetc(input);
+                        if (c <= 31)
+                        {
+                            return IFJ_ERR_LEXICAL;
+                        }
                         switch (c)
                         {
                             case '$':
@@ -221,33 +222,43 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
 
                                 c = '"';
                               } break;
-                              case 'x':
+                            case 'x':
                             {
                                 //read next two characters and convert it into long
                                 char tmp_buffer[2];
-                                int read = fscanf(input,"%c%c",&(tmp_buffer[0]),&(tmp_buffer[1]));
-                                tmp_buffer[2]='\0';
-                                if (read != 2)
+                                tmp_buffer[1] = tmp_buffer[2] = '\0';
+                                tmp_buffer[0] = fgetc(input);
+                                if (tmp_buffer[0] <=31)
                                 {
                                     return IFJ_ERR_LEXICAL;
                                 }
-                                if (is_hexadecimal(tmp_buffer))
+                                if (! is_hexadecimal(tmp_buffer[0]))
                                 {
-                                    char* control_pointer = NULL;
-                                    int number = strtol(tmp_buffer, &control_pointer, 16);
-                                    if (*control_pointer != '\0')
-                                    {
-                                        return IFJ_ERR_LEXICAL;
-                                    }
-
-                                    if (write_c(buffer,number) == IFJ_ERR_INTERNAL)
+                                    if ((write_c(buffer,'\\') != 0)
+                                        ||(write_c(buffer, 'x') != 0))
                                     {
                                         return IFJ_ERR_INTERNAL;
                                     }
+                                    ungetc(tmp_buffer[0],input);
+                                    c = '"';
+                                    break;
                                 }
-                                else
+                                if (! is_hexadecimal(tmp_buffer[1]))
                                 {
-                                    return IFJ_ERR_LEXICAL;
+                                    if ((write_c(buffer,'\\') != 0)
+                                        ||(write_c(buffer, 'x') != 0)
+                                        ||(write_c(buffer, tmp_buffer[0]) != 0))
+                                    {
+                                        return IFJ_ERR_INTERNAL;
+                                    }
+                                    ungetc(tmp_buffer[1],input);
+                                    c = '"';
+                                    break;
+                                }
+                                int number = strtol(tmp_buffer, NULL, 16);
+                                if (write_c(buffer,number) == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
                                 }
                                 c = '"';
                             } break;
