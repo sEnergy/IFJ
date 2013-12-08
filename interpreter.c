@@ -521,10 +521,6 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             {
                 return IFJ_ERR_MISSING_PARAMETER;
             }
-            if(tmp_change_token->data == NULL)
-            {
-                return IFJ_ERR_UNDECLARED_VARIABLE;
-            }            
             
             //creating new hashtable for inner function
             hashtable_item** new_hashtable = hashtable_init();
@@ -534,7 +530,8 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
             }
             
             my_token = search->function_token->condition;
-            while (tmp_change_token != NULL)
+
+            while (tmp_change_token != NULL && tmp_change_token->data != NULL)
             {
                 if (insert_item_hashtable (new_hashtable, &(buffer->data[my_token->content]), 
                     tmp_change_token->id, tmp_change_token->data))
@@ -600,7 +597,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
     else if (DEBUGGING) printf("check_params: nic\n");
 
     int error = 0;
-    if (token == NULL && number_of_params == 0)
+    if (number_of_params == 0)
     {
         return error;
     }
@@ -608,7 +605,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
     int first = 1; //if the changeable_token is the first one
     changeable_tokenPtr change_token_active = change_token;
     TokenPtr my_token = token; //so i dont destroy the original token
-
+    
     while (!error && my_token != NULL && number_of_params != 0)
     {
         if (first)
@@ -673,7 +670,7 @@ int check_params (TokenPtr token, changeable_tokenPtr change_token, BUFFER_STRUC
         number_of_params--;
         my_token = my_token->next;
     }
-    if (!error && number_of_params >= 0 && (number_of_params != 0 || my_token != NULL))
+    if (!error && number_of_params >= 0 && number_of_params != 0)
     {
         error = IFJ_ERR_MISSING_PARAMETER;
     }
@@ -1150,8 +1147,8 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
             // bad types
             else
             {
-				printf("left %s %d\n" ,change_token_left->data, change_token_left->id);
-				printf("right %s %d\n" ,change_token_right->data, change_token_right->id);
+				//printf("left %s %d\n" ,change_token_left->data, change_token_left->id);
+				//printf("right %s %d\n" ,change_token_right->data, change_token_right->id);
                 error = IFJ_ERR_TYPE_COMPATIBILITY;
             }
         } // end of "*", "+", "-", "/"
