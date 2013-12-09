@@ -46,7 +46,7 @@ void clear_hashtable (hashtable_item** hashtable);
 hashtable_item** copy_hashtable (hashtable_item** hashtable);
 
 int* build_table (char* substring);
-int search_substring(char* substring, char* string, int *found);
+int search_substring(char* string, char* substring, int* found);
 
 char *shell_sort(char array[], int size);
 

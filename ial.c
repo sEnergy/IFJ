@@ -60,7 +60,7 @@ int* build_table (char* substring)
  * Searches for substring. If substring is found, its index within string is
  * stored in variable found. In any other case, found is set to -1.
  */
-int search_substring(char* substring, char* string, int* found)
+int search_substring(char* string, char* substring, int* found)
 {
     int* table = build_table(substring); /* creation of table - look above */
 

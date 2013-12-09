@@ -562,7 +562,7 @@ int find_string (changeable_tokenPtr token)
     }
     else
     {
-        code = search_substring(pattern, source, &found);
+        code = search_substring(source, pattern, &found);
         if (code != 0) return code;
         char *tmp = malloc(sizeof(char)*10);
         if (tmp == NULL) return IFJ_ERR_INTERNAL;
