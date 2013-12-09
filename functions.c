@@ -132,6 +132,10 @@ int intval(changeable_tokenPtr token)
         
         while(len > i)
         {
+            if(isdigit(tmp_data[i]) || tmp_data[i] == '\0') 
+            {
+                break;
+            }
             while(!isspace(tmp_data[i]) && (len > i))
             {
                 i++;
@@ -140,18 +144,14 @@ int intval(changeable_tokenPtr token)
             {
                 i++;
             }
-            if(isdigit(tmp_data[i])) break;
-            i++;
         }
-
         while(len > i)
         {
-                if(isdigit(tmp_data[i]))
-                {
-                    tmp_number = (tmp_data[i] - '0') + 10 * tmp_number;
-                    if (tmp_data[i+1] == '\0' || !isdigit(tmp_data[i+1])) break;
-                }
-                else break; 
+            if(isdigit(tmp_data[i]))
+            {
+                tmp_number = (tmp_data[i] - '0') + 10 * tmp_number;
+                if (tmp_data[i+1] == '\0' || !isdigit(tmp_data[i+1])) break;
+            }
             i++;
         }
         
@@ -224,9 +224,14 @@ int doubleval(changeable_tokenPtr token)
         bool fraction = false;
         int e_sign = 1;
         bool count = true;
+        bool was_here = false;
 
         while(len > i)
         {
+            if(isdigit(tmp_data[i]) || tmp_data[i] == '\0') 
+            {
+                break;
+            }           
             while(!isspace(tmp_data[i]) && (len > i))
             {
                 i++;
@@ -235,14 +240,13 @@ int doubleval(changeable_tokenPtr token)
             {
                 i++;
             }
-            if(isdigit(tmp_data[i])) break;
-            i++;
         }
 
         while(len > i && count == true)
         {
             if(isdigit(tmp_data[i]))
             {
+
                 if(fraction)
                 {
                     frac_num = (tmp_data[i] - '0') + 10.0 * frac_num;
@@ -262,13 +266,13 @@ int doubleval(changeable_tokenPtr token)
                         {
                             e_sign = -1;
                             i++;
-                            if(!isdigit(tmp_data[i])) return IFJ_ERR_RETYPE;
+                            if(!isdigit(tmp_data[i])) return 11;
                         }
                         else if (tmp_data[i] == '+') 
                         {
                             e_sign = 1;
                             i++;
-                            if(!isdigit(tmp_data[i])) return IFJ_ERR_RETYPE;
+                            if(!isdigit(tmp_data[i])) return 11;
                         }
                         while(isdigit(tmp_data[i]) && len > i)
                         {
@@ -286,18 +290,18 @@ int doubleval(changeable_tokenPtr token)
                             e_num = pow(10,(-1)*e_num);
                         }   
                     }
-                    else return IFJ_ERR_RETYPE;
+                    else return 11;
                 }
-                else if (tmp_data[i+1] == '.')
+                else if (tmp_data[i+1] == '.' && was_here == false)
                 {
                     fraction = true;
-                    if (!isdigit(tmp_data[i+2])) count = false;
+                    was_here = true;
+                    if (!isdigit(tmp_data[i+2])) return 11;
                 }
             }
             if(isspace(tmp_data[i])) break;
             i++;
         }
-
 
         if(e_num == 0)
         {
