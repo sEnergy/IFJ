@@ -129,19 +129,32 @@ int intval(changeable_tokenPtr token)
         int len = strlen(token->data);
         int i = 0;
         int tmp_number = 0;
+        
         while(len > i)
         {
-            if(isspace(tmp_data[i]));
-            else
+            while(!isspace(tmp_data[i]) && (len > i))
             {
+                i++;
+            }
+            while(isspace(tmp_data[i]) && (len > i))
+            {
+                i++;
+            }
+            if(isdigit(tmp_data[i])) break;
+            i++;
+        }
+
+        while(len > i)
+        {
                 if(isdigit(tmp_data[i]))
                 {
                     tmp_number = (tmp_data[i] - '0') + 10 * tmp_number;
                     if (tmp_data[i+1] == '\0' || !isdigit(tmp_data[i+1])) break;
                 }
-            }
+                else break; 
             i++;
         }
+        
         sprintf(tmp_data,"%d",tmp_number);
         token->id = IFJ_T_INT;
         error_code = changeable_token_update(token, tmp_data);
@@ -212,31 +225,37 @@ int doubleval(changeable_tokenPtr token)
         int e_sign = 1;
         bool count = true;
 
+        while(len > i)
+        {
+            while(!isspace(tmp_data[i]) && (len > i))
+            {
+                i++;
+            }
+            while(isspace(tmp_data[i]) && (len > i))
+            {
+                i++;
+            }
+            if(isdigit(tmp_data[i])) break;
+            i++;
+        }
+
         while(len > i && count == true)
         {
-            if(isspace(tmp_data[i]));
-            else
+            if(isdigit(tmp_data[i]))
             {
-                if(isdigit(tmp_data[i]))
+                if(fraction)
                 {
-                        if(fraction)
-                        {
-                            frac_num = (tmp_data[i] - '0') + 10.0 * frac_num;
-                            frac_div *= 10;
-                        }
-                        else
-                        {
-                            int_num = (tmp_data[i] - '0') + 10.0 * int_num;
-                        }
-                        
-                        if (!isdigit(tmp_data[i+1]) && tmp_data[i+1] != '.') 
-                        {
-                            if(tmp_data[i+1] != 'e' && tmp_data[i+1] != 'E') count = false;
-                        }
+                    frac_num = (tmp_data[i] - '0') + 10.0 * frac_num;
+                    frac_div *= 10;
                 }
-                else if (tmp_data[i] == 'e' || tmp_data[i] != 'E')
+                else
                 {
-                    i++;
+                    int_num = (tmp_data[i] - '0') + 10.0 * int_num;
+                }           
+                
+                if (tmp_data[i+1] == 'e' || tmp_data[i+1] == 'E')
+                {
+                    i=i+2;
                     if(isdigit(tmp_data[i]) || tmp_data[i] == '-' || tmp_data[i] == '+') 
                     {
                         if(tmp_data[i] == '-') 
@@ -251,12 +270,13 @@ int doubleval(changeable_tokenPtr token)
                             i++;
                             if(!isdigit(tmp_data[i])) return IFJ_ERR_RETYPE;
                         }
-                        while(isdigit(tmp_data[i]))
+                        while(isdigit(tmp_data[i]) && len > i)
                         {
                             e_num = (tmp_data[i] - '0') + 10.0 * e_num;
                             i++;
                             if (!isdigit(tmp_data[i+1])) count = false;
                         }
+                        
                         if(e_sign == 1)
                         {
                             e_num = pow(10,e_num);
@@ -268,11 +288,13 @@ int doubleval(changeable_tokenPtr token)
                     }
                     else return IFJ_ERR_RETYPE;
                 }
-                else if (tmp_data[i] == '.')
+                else if (tmp_data[i+1] == '.')
                 {
                     fraction = true;
+                    if (!isdigit(tmp_data[i+2])) count = false;
                 }
             }
+            if(isspace(tmp_data[i])) break;
             i++;
         }
 
