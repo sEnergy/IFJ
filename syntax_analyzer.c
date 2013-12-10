@@ -482,6 +482,10 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
                     return IFJ_ERR_INTERNAL;
                 }
                 *ancestorPtr = token;
+                if ((code = lex_analyzer(input, token, big_string)) != 0)
+                {
+                    return code;
+                }
                 continue;
             }
             else if ((strcmp(&big_string->data[token->content], "if\0") != 0)
