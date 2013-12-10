@@ -450,7 +450,7 @@ int functions (TokenPtr token, changeable_tokenPtr change_token,
         error = check_params (token->condition, change_token, buffer, hashtable, -1);
         if (!error)
         {
-            error = put_string(&number_of_params, change_token);
+            error = put_string(&number_of_params, hashtable, change_token);
             if (!error)
             {
                 int number_of_params_temp = number_of_params;
@@ -1052,7 +1052,7 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                 double operand_1_double;
                 double operand_2_double;
                 double result_double;
-                int length_result;
+                int length_result = 0;
                 char * result_string;
 
                 // int and int

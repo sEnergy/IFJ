@@ -38,7 +38,7 @@ int str_len(changeable_tokenPtr token);
 int get_string(changeable_tokenPtr token);
 
 // Changes id and data to int. Prints strings to stdin.
-int put_string(int* arg_number, changeable_tokenPtr token);
+int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr token);
 
 // In data will be sorted string.
 int sort_string(changeable_tokenPtr token);

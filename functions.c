@@ -458,31 +458,67 @@ int get_string(changeable_tokenPtr token)
 *                                   PUT_STRING
 *******************************************************************************/
 
-int put_string(int* arg_number, changeable_tokenPtr token)
+int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr token)
 {
     int argc = 0;
+    if(token->data == NULL) 
+    {
+        *arg_number = argc;
+        return 0;
+    }
+
     while(token->data != NULL)
     {
-        if (token->id == IFJ_T_INT) 
+        int i = 0;
+        int j = 0;
+        int len = strlen(token->data);
+        while(len > i)
         {
-        printf("%s",token->data);
-        argc++;
+
+            if(token->data[i] == '\\') 
+            {
+                i++;
+                if(len > i && token->data[i] == '$')
+                {
+                    printf("$");
+                }
+            }    
+            else if(token->data[i] == '$')    
+            {       
+                char *tmp_data = malloc(sizeof(char)*(len));
+                tmp_data[j] = token->data[i];
+                i++;
+                j++;
+                while((len > i) && (isalpha(token->data[i]) || token->data[i] == '_'))
+                {
+                    tmp_data[j] = token->data[i];
+                    if(len > i + 1 && !isalpha(token->data[i + 1]) && token->data[i + 1] != '_')
+                    {
+                        break;
+                    }
+                    j++;
+                    i++;
+                }
+                hashtable_item* my_item = search_hashtable (hashtable, tmp_data);
+                
+                if (my_item == NULL)
+                {
+                    return IFJ_ERR_UNDECLARED_VARIABLE;
+                }
+                else
+                {
+                    free(tmp_data);
+                    char *out_data = my_item->value;
+                    printf("%s",out_data);
+                }
+            } 
+            else
+            {
+                printf("%c",token->data[i]);
+            }
+            i++;  
         }
-        else if (token->id == IFJ_T_DOUBLE) 
-        {
-        printf("%s",token->data);
         argc++;
-        }
-        else if (token->id == IFJ_T_STRING) 
-        {
-        printf("%s",token->data);
-        argc++;
-        }
-        else if (token->id == IFJ_T_KEYWORD)    
-        {
-        printf("%s",token->data);
-        argc++;
-        }
         if(token->next_params == NULL) break;
         token = token->next_params;
     }
