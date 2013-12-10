@@ -14,7 +14,7 @@
 #define IFJ_LEX_INCLUDED
 
 // defined number of keywords
-#define KEYWORD_NUMBER 8
+#define KEYWORD_NUMBER 9
 #include "token_list.h"
 
 typedef struct buffer_struct

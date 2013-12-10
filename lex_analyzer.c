@@ -30,7 +30,8 @@
 const char *keywords[KEYWORD_NUMBER] =
 {
     "else\0",   "function\0",   "if\0",     "return\0",
-    "while\0",  "false\0",      "null\0",   "true\0"
+    "while\0",  "false\0",      "null\0",   "true\0", 
+    "elseif\0"
 };
 
 

@@ -59,7 +59,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
  * or i may be start of "return" expression (in this case, i need to read "return"
  * token first)
  */
-int check_statement (FILE *input, TokenPtr* token_old, BUFFER_STRUCT big_string, Stack_t* garbages);
+int check_statement (FILE *input, TokenPtr* token_old, TokenPtr* next, BUFFER_STRUCT big_string, Stack_t* garbages);
 
 /*
  * Checks syntax of whole function declaration - identificator, parameter list
@@ -100,7 +100,7 @@ int check_condition (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, 
  * is correct conditon, statement list, "else" keyword and another statement
  * list.
  */
-int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages);
+int check_if_else (FILE *input, TokenPtr token_old, TokenPtr* next, BUFFER_STRUCT big_string, Stack_t* garbages);
 
 // Checks syntax of while construction - condition folowed by statement list
 //int check_while (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string);

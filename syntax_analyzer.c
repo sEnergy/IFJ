@@ -35,7 +35,7 @@ TokenPtr new_token(Stack_t* garbages)
         free(token);
         return NULL;
     }
-    token->id = 50;
+    token->id = 0;
     token->content = 0;
     token->LPtr = NULL;
     token->RPtr = NULL;
@@ -458,12 +458,13 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
     TokenPtr token = *token_oldPtr;
     TokenPtr token_new = NULL;
     TokenPtr* ancestorPtr = token_oldPtr;
+    if ((code = lex_analyzer(input, token, big_string)) != 0)
+    {
+        return code;
+    }
     while (1)
     {
-        if ((code = lex_analyzer(input, token, big_string)) != 0)
-        {
-            return code;
-        }
+        
         if (token->id == IFJ_T_KEYWORD)
         {
             if (strcmp(&big_string->data[token->content], "function\0") == 0) // function declaration
@@ -491,9 +492,17 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
             }
             else // return statement, if-else construction or while cycle
             {
-                if((code = check_statement (input, ancestorPtr, big_string, garbages)) != 0)
+                TokenPtr next = NULL;
+                if((code = check_statement (input, ancestorPtr, &next, big_string, garbages)) != 0)
                 {
                     return code;
+                }
+                if (next != NULL)
+                {
+                    (*ancestorPtr)->next = next;
+                    ancestorPtr = &(*ancestorPtr)->next;
+                    token = next;
+                    continue;
                 }
             }
         }
@@ -503,7 +512,7 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
         }
         else if (token->id == IFJ_T_VARIALBE) // assign statement
         {
-            if((code = check_statement (input, ancestorPtr, big_string, garbages)) != 0)
+            if((code = check_statement (input, ancestorPtr, NULL, big_string, garbages)) != 0)
             {
                 return code;
             }
@@ -519,6 +528,11 @@ int check_syntax (FILE *input, TokenPtr* token_oldPtr, function_hashtablePtr* HT
         (*ancestorPtr)->next = token_new;
         ancestorPtr = &(*ancestorPtr)->next;
         token = token_new;
+        
+        if ((code = lex_analyzer(input, token, big_string)) != 0)
+        {
+            return code;
+        }
     }
 }
 
@@ -748,7 +762,7 @@ int check_expression (FILE *input, TokenPtr* token_oldPtr,
  * or i may be start of "return" expression (in this case, i need to read "return"
  * token first)
  */
-int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_string, Stack_t* garbages)
+int check_statement (FILE *input, TokenPtr* token_oldPtr, TokenPtr* next, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     
     int code;
@@ -798,7 +812,7 @@ int check_statement (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
     }
     else if (strcmp(&big_string->data[token_old->content], "if\0") == 0)
     {
-        return check_if_else (input, token_old, big_string, garbages);
+        return check_if_else (input, token_old, next, big_string, garbages);
     }
     else if (strcmp(&big_string->data[token_old->content], "while\0") == 0)
     {
@@ -914,7 +928,7 @@ int check_while (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stac
  * is correct conditon, statement list, "else" keyword and another statement
  * list.
  */
-int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stack_t* garbages)
+int check_if_else (FILE *input, TokenPtr token_old, TokenPtr* next, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     int code;
     TokenPtr token=NULL;
@@ -941,16 +955,27 @@ int check_if_else (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, St
     {
         return code;
     }
-    else if (strcmp(&big_string->data[token->content], "else\0") != 0)
+    if (strcmp(&big_string->data[token->content], "else\0") == 0)
     {
-        return IFJ_ERR_SYNTAX;
+        if ((code = check_stat_list (input, &token_old->RPtr, big_string, garbages)) != 0)
+        {
+            return code;
+        }
     }
-    
-    // and statement list for case conditon != true
-    if ((code = check_stat_list (input, &token_old->RPtr, big_string, garbages)) != 0)
+    else if (strcmp(&big_string->data[token->content], "elseif\0") == 0)
     {
-        return code;
-    }   
+        token_old->RPtr = token;
+        if ((code = check_if_else(input, token, next, big_string,  garbages)) != 0)
+        {
+            return code;
+        }
+    }
+    else
+    {
+        *next = token;
+    }
+    // and statement list for case conditon != true
+       
     // if everything passed, the if-else control construction is fine
     return 0;
 }
@@ -996,10 +1021,18 @@ int check_stat_list (FILE *input, TokenPtr* token_oldPtr, BUFFER_STRUCT big_stri
                 return IFJ_ERR_SYNTAX;
             }
             else
-            {
-                if((code = check_statement (input, ancestorPtr, big_string, garbages)) != 0)
+            { 
+                TokenPtr next = NULL;
+                if((code = check_statement (input, ancestorPtr, &next, big_string, garbages)) != 0)
                 {
                     return code;
+                }
+                if (next != NULL)
+                {
+                    (*ancestorPtr)->next = next;
+                    ancestorPtr = &(*ancestorPtr)->next;
+                    token = next;
+                    continue;
                 }
             }
             // read of next token
