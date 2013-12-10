@@ -486,6 +486,10 @@ int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr 
             else if(token->data[i] == '$')    
             {       
                 char *tmp_data = malloc(sizeof(char)*(len));
+                if (tmp_data == NULL)
+                {
+					return IFJ_ERR_INTERNAL;
+				}
                 tmp_data[j] = token->data[i];
                 i++;
                 j++;
@@ -494,11 +498,13 @@ int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr 
                     tmp_data[j] = token->data[i];
                     if(len > i + 1 && !isalpha(token->data[i + 1]) && token->data[i + 1] != '_')
                     {
+						j++;
                         break;
                     }
                     j++;
                     i++;
                 }
+                tmp_data[j] = '\0';
                 hashtable_item* my_item = search_hashtable (hashtable, tmp_data);
                 
                 if (my_item == NULL)
