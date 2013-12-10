@@ -139,6 +139,7 @@ int work(Stack_t* stack, TokenList* list, BUFFER_STRUCT big_string, Stack_t* gar
         S_pop(stack);
         op->is_expression = true;
     }
+//E->-E
     else if (r3)
     {
         List_itemPtr expr = proceeded;
@@ -187,11 +188,9 @@ List_itemPtr Lclosest_term(TokenList* list)
  * tree of the operations, that are ordered accoring to precedence table
  * 
  * UNARY MINUS
- * It is not implemented in table due to being same character as binary minus but
- * different priority.
  * Uminus must follow not expression - operator except right bracket, therefore
- * it is bminus. rule is -E*->E while * is next terminal on the input and E is implemented 
- * as 0-E*
+ * it is Bminus. The rule is E->-E. In ASS it is represented as 0-terminal, 0 is
+ * created as a new token.
  */
 int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
@@ -234,7 +233,7 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
     {
         return IFJ_ERR_INTERNAL;
     }
-// Create start and end terminals and joint it to the input.
+// Create start and end terminals and join it to the input.
     start->id = IFJ_T_MOD;
     end->id = IFJ_T_MOD;
     if ((code = TL_Insert_Last(list,end)) != 0)
@@ -262,8 +261,10 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
             continue;
         }   
 
-// Lookup rule for left-closest TERMINAL on the input and actual terminal on the input.
-// There is -2 in in indexes due to starting operator tokens on position 2 in enum. 
+/* Lookup rule for left-closest TERMINAL on the input and actual terminal on the input.
+ * There is -2 in in indexes due to starting operator tokens on position 2 in enum. 
+ * Detecting unary minus and set position for lookup in table manualy
+ */
         if (list->active->LPtr != NULL && list->active->content->id == IFJ_T_MIN &&
                         (is_operator(list->active->LPtr->content) 
                         || list->active->LPtr->content->id == IFJ_T_LB))
@@ -284,6 +285,7 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
                 TL_ActiveNext(list);
                 break;
             case 2:
+// apply rules
                 if ((code = work(&stack,list,big_string,garbages)) != 0)
                 {
                     return code;
