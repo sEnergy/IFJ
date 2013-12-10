@@ -1402,6 +1402,10 @@ int call_root_function (TokenPtr token, hashtable_item** hashtable, BUFFER_STRUC
             {
                 error = if_function (token, hashtable, buffer, function_hashtable);
             }
+            else if (strcmp(&(buffer->data[token->content]), "elseif") == 0)
+            {
+                error = if_function (token, hashtable, buffer, function_hashtable);
+            }
             else if (strcmp(&(buffer->data[token->content]), "while") == 0)
             {
                 error = while_function (token, hashtable, buffer, function_hashtable);
