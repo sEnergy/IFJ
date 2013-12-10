@@ -211,7 +211,7 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
       
 // input  *   /   +   -   .   <   >  <=  >=  === !==  (   )   $  U-
         { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // *
-        { 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // /
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // /
         { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // +
         { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // -
         { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // .
@@ -268,7 +268,7 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
                         (is_operator(list->active->LPtr->content) 
                         || list->active->LPtr->content->id == IFJ_T_LB))
         {
-            y = 0;
+            y = 14;
         }
         else
         {
