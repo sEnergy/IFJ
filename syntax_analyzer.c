@@ -930,9 +930,12 @@ int check_while (FILE *input, TokenPtr token_old, BUFFER_STRUCT big_string, Stac
 }
 
 /*
- * This function is called after "if" keyword is found. It checks if there
- * is correct conditon, statement list, "else" keyword and another statement
- * list.
+ * This function is called after "if" keyword is found. Afterwards conditions
+ * and statement list is checked. Next token is checked and if it is elseif, token
+ * is joined to previous "if" as false option and fuction is called recursively and 
+ * elseif is taken as another if. If else is read, it is joined to actual if as 
+ * false option of condition. Everything else is stored in next token not to be thrown
+ * away.
  */
 int check_if_else (FILE *input, TokenPtr token_old, TokenPtr* next, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
