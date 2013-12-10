@@ -70,125 +70,161 @@ int check_same_parameters(TokenPtr token,BUFFER_STRUCT big_string)
 /*
  * Function apply defined rules on input and check errors.
  */ 
-int work(Stack_t* stack, TokenList* list)
+int work(Stack_t* stack, TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     List_itemPtr proceeded = list->active->LPtr;
     int i = 0;
-// There are rules only for 3 tokens.
+    int code;
+    bool r1 = true; // E->(E)
+    bool r2 = true; // E->E op E
+    bool r3 = true; // E->-E
+// There are rules only for max up to 3 tokens.
+    
     while(proceeded != NULL && proceeded->content != S_top(stack))
     {
-        i++;
+        switch(i)
+        {
+            case 0:
+                if (proceeded->content->id != IFJ_T_RB) r1 = false;
+                if (!proceeded->is_expression) r3 = r2 = false;
+                break;
+            case 1:
+                if (r1 && !proceeded->is_expression) r1 = false;
+                if (r2 && proceeded->is_expression) r2 = false;
+                if (r3 && proceeded->content->id != IFJ_T_MIN) r3 = false;
+                break;
+            case 2:
+                r3 = false;
+                if (r1 && proceeded->content->id != IFJ_T_LB) r1 = false;
+                if (r2 && !proceeded->is_expression) r2 = false;
+                break;
+            default:
+                return IFJ_ERR_SYNTAX;
+        }
         proceeded = proceeded->LPtr;
-        if (i>3)
-        {
-            return IFJ_ERR_SYNTAX;
-        }
+        i++;
     }
-    proceeded = list->active->LPtr; 
-    if (i!=3)
-    {
-        return IFJ_ERR_SYNTAX;
-    }
+    
+    proceeded = list->active->LPtr;
 //E->(E)
-    if (proceeded->content->id == IFJ_T_RB)
+    if (r1)
     {  
-        List_itemPtr expression = proceeded->LPtr;
-        List_itemPtr l_lb = expression->LPtr;
-        if (expression->is_expression &&
-            l_lb->content->id == IFJ_T_LB)
-        {
-            expression->LPtr = l_lb->LPtr;
-            expression->RPtr = proceeded->RPtr;
-            proceeded->RPtr->LPtr = expression;
-            l_lb->LPtr->RPtr = expression;
-            free(l_lb);
-            l_lb = NULL;
-            free(proceeded);
-            proceeded = NULL;
-            S_pop(stack);
-        }
-        else
-        {
-            return IFJ_ERR_SYNTAX;
-        }
+        List_itemPtr expr = proceeded->LPtr;
+        List_itemPtr lb = expr->LPtr;
+        List_itemPtr rb = proceeded;
+        
+        expr->LPtr = lb->LPtr;
+        expr->RPtr = rb->RPtr;
+        rb->RPtr->LPtr = expr;
+        lb->LPtr->RPtr = expr;
+        free(lb);
+        free(rb);
+        S_pop(stack);
     }
 //E->E operator E
-    else if(proceeded->is_expression)
+    else if(r2 && !r3)
     {    
-        List_itemPtr operator = proceeded->LPtr;
-        List_itemPtr l_op = operator->LPtr;
-        if (!operator->is_expression &&
-            l_op->is_expression)
+        List_itemPtr op = proceeded->LPtr;
+        List_itemPtr l_expr = op->LPtr;
+        List_itemPtr r_expr = proceeded;
+        
+        op->content->LPtr = l_expr->content;
+        op->content->RPtr = r_expr->content;
+        op->LPtr = l_expr->LPtr;
+        op->RPtr = r_expr->RPtr;
+        r_expr->RPtr->LPtr = op;
+        l_expr->LPtr->RPtr = op;
+        free(l_expr);
+        free(r_expr);
+        S_pop(stack);
+        op->is_expression = true;
+    }
+    else if (r3)
+    {
+        List_itemPtr expr = proceeded;
+        List_itemPtr op = expr->LPtr;
+        TokenPtr zero = NULL;
+        
+        if ((zero = new_token(garbages)) == NULL)
+            {
+                return IFJ_ERR_INTERNAL;
+            }
+        zero->id = IFJ_T_INT;
+        buffer_next_token(big_string);
+        if ((code = write_c(big_string, '0')) != 0)
         {
-            operator->content->LPtr = l_op->content;
-            operator->content->RPtr = proceeded->content;
-            operator->LPtr = l_op->LPtr;
-            operator->RPtr = proceeded->RPtr;
-            proceeded->RPtr->LPtr = operator;
-            l_op->LPtr->RPtr = operator;
-            free(l_op);
-            l_op = NULL;
-            free(proceeded);
-            proceeded = NULL;
-            S_pop(stack);
-            operator->is_expression = true;
+            return code;
         }
-        else
-        {
-            return IFJ_ERR_SYNTAX;
-        }
+        op->content->LPtr = zero;
+        op->content->RPtr = expr->content;
+        op->RPtr = expr->RPtr;
+        expr->RPtr->LPtr = op;
+        op->LPtr->RPtr = op;
+        op->is_expression = true;
+        free(expr);      
+        S_pop(stack);
     }
     else
     {
-        return IFJ_ERR_LEXICAL;
+        return IFJ_ERR_SYNTAX;
     }
     return 0;
 }
 /*
  * Function return left-closest from active TERMINAL on input
  */         
-TokenPtr Lclosest_term(TokenList* list)
+List_itemPtr Lclosest_term(TokenList* list)
 {
     List_itemPtr proceeded = list->active->LPtr;
     while(proceeded->is_expression == true)
     {
         proceeded = proceeded->LPtr;
     }
-    return proceeded->content;
+    return proceeded;
 }
 /* 
  * Function perform precedence syntax analyze and create abstract syntax 
  * tree of the operations, that are ordered accoring to precedence table
-*/
+ * 
+ * UNARY MINUS
+ * It is not implemented in table due to being same character as binary minus but
+ * different priority.
+ * Uminus must follow not expression - operator except right bracket, therefore
+ * it is bminus. rule is -E*->E while * is next terminal on the input and E is implemented 
+ * as 0-E*
+ */
 int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
 {
     Stack_t stack;
     TokenPtr start;
     TokenPtr end;
-    TokenPtr left_closest_term;
+    List_itemPtr LCterm;
     int code;
+    int x;
+    int y;
     
     
     S_init(&stack);
-    int table[14][14] = 
+    int table[15][15] = 
     {
       // false - 0     < - 1      > - 2      = - 3        succes - 4
       
-// input  *   /   +   -   .   <   >  <=  >=  === !==  (   )   $  
-        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // *
-        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // /
-        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // +
-        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // -
-        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // .
-        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // <
-        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // >
-        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // <=
-        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2}, // >=
-        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2}, // ===
-        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2}, // !==
-        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 3 , 0}, // (
-        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 2 , 2}, // )
-        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 4}, // $
+// input  *   /   +   -   .   <   >  <=  >=  === !==  (   )   $  U-
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // *
+        { 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // /
+        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // +
+        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // -
+        { 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // .
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // <
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // >
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // <=
+        { 1 , 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // >=
+        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2, 1 }, // ===
+        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2, 1 }, // !==
+        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 3 , 0, 1 }, // (
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 2 , 2, 1 }, // )
+        { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 4, 1 }, // $
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 0 , 2, 1 }, // U-
     };
     if((start = new_token(garbages)) == NULL)
     {
@@ -213,7 +249,8 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
     TL_ActiveNext(list);
     while (1)
     {
-        if (Lclosest_term(list) == start && TL_GetID(list) == end)
+        LCterm = Lclosest_term(list);
+        if (LCterm->content == start && TL_GetID(list) == end)
         {
             break;
         }
@@ -223,11 +260,22 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
             list->active->is_expression = true;
             TL_ActiveNext(list);
             continue;
-        }
+        }   
+
 // Lookup rule for left-closest TERMINAL on the input and actual terminal on the input.
-// There is -2 in in indexes due to starting operator tokens on position 2 in enum.       
-        left_closest_term = Lclosest_term(list);
-        switch (table[left_closest_term->id-2][list->active->content->id-2])
+// There is -2 in in indexes due to starting operator tokens on position 2 in enum. 
+        if (list->active->LPtr != NULL && list->active->content->id == IFJ_T_MIN &&
+                        (is_operator(list->active->LPtr->content) 
+                        || list->active->LPtr->content->id == IFJ_T_LB))
+        {
+            y = 0;
+        }
+        else
+        {
+            y = list->active->content->id-2;
+        }
+        x = LCterm->content->id-2;
+        switch (table[x][y])
         {
             
             case 4:
@@ -236,14 +284,14 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
                 TL_ActiveNext(list);
                 break;
             case 2:
-                if ((code = work(&stack,list)) != 0)
+                if ((code = work(&stack,list,big_string,garbages)) != 0)
                 {
                     return code;
                 }
                 break;
             case 1:
 // Stack is stopper. < character in slides.
-                if ((code = S_push(&stack,left_closest_term)) != 0)
+                if ((code = S_push(&stack,LCterm->content)) != 0)
                 {
                     return IFJ_ERR_INTERNAL;
                 }

@@ -28,10 +28,10 @@ int check_same_parameters(TokenPtr token,BUFFER_STRUCT big_string);
 int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages);
 
 //Return left-closest term to active on input
-TokenPtr Lclosest_term(TokenList* list);
+List_itemPtr Lclosest_term(TokenList* list);
 
 //apply rule for PSA
-int work(Stack_t* stack, TokenList* list);
+int work(Stack_t* stack, TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages);
 
 // initicalizes buffer before first use
 int buffer_init(BUFFER_STRUCT buffer);

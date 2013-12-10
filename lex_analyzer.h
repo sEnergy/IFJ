@@ -25,6 +25,8 @@ typedef struct buffer_struct
 }* BUFFER_STRUCT;
 
 int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer);
+int write_c(BUFFER_STRUCT buffer, char c);
+void buffer_next_token(BUFFER_STRUCT buffer);
 
 /* Enumeration of states in INT and DOUBLE section */
 enum state
