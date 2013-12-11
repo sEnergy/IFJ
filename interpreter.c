@@ -128,7 +128,7 @@ int function_hashtable_insert (function_hashtablePtr* function_hashtable, TokenP
 
             unsigned int index = hash_function (string);
             searched_item = malloc (sizeof(struct function_hash_table));
-            searched_item->name = malloc(sizeof(strlen(string)) + 1);
+            searched_item->name = malloc(sizeof(strlen(string)) + 10);
 
             if (DEBUGGING == 2) printf("HT-insert2a\n");
             /* Failed allocation*/
@@ -252,12 +252,9 @@ int changeable_token_update(changeable_tokenPtr change_token, char * new_data)
     if (DEBUGGING == 2) printf("token_update\n");
     if ((change_token->data == NULL) || strlen(change_token->data) < strlen(new_data))
     {
-        if (change_token->data != NULL && (strlen(change_token->data) != 0))
-        {
-            free(change_token->data);
-            change_token->data = NULL;
-        }
-        change_token->data = malloc (sizeof(char)* (strlen(new_data)+1));
+        free(change_token->data);
+        change_token->data = NULL;
+        change_token->data = malloc (sizeof(char)* (strlen(new_data)+10));
         if(change_token->data == NULL)
         {
             return IFJ_ERR_INTERNAL;
@@ -279,7 +276,10 @@ int changeable_token_Insert (changeable_tokenPtr change_token, TokenPtr token, B
 {
     if (DEBUGGING == 2) printf("token_insert\n");
     change_token->id = token->id;
-    if ((change_token->data = malloc(sizeof(char) * (strlen(&(buffer->data[token->content])) + 1))) == NULL)
+    free(change_token->data);
+    change_token->data = NULL;
+    change_token->data = (char*)malloc(sizeof(char) * (strlen(&(buffer->data[token->content])) + 10));
+    if (change_token->data == NULL)
     {
         return IFJ_ERR_INTERNAL;
     }
@@ -1121,7 +1121,7 @@ int basic_operator_function (TokenPtr token, changeable_tokenPtr change_token, B
                     length_result = length_left > length_right ? (length_left) : (length_right);
 
                 }
-                result_string = malloc(sizeof(char) * (length_result + 3));
+                result_string = (char *)malloc(sizeof(char) * (length_result + 10));
                 //allocation bug
                 if (result_string == NULL)
                 {
