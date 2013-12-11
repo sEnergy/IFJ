@@ -389,17 +389,6 @@ int syntax_analyzer (char* input_filename)
     S_init(&garbages);
     function_hashtablePtr* FHTable = NULL;
     
-    //first token
-    if ((token = new_token(&garbages))==NULL)
-    {
-        return IFJ_ERR_INTERNAL;
-    }
-    
-    //initialization of hashtable
-    if ((FHTable = function_hashtable_init()) == NULL)
-    {
-        return IFJ_ERR_INTERNAL;
-    }
     // open source file
     if ((input = fopen(input_filename, "r")) == NULL)
     {
@@ -411,6 +400,17 @@ int syntax_analyzer (char* input_filename)
     {
         fclose(input);
         return code;
+    }
+    //first token
+    if ((token = new_token(&garbages))==NULL)
+    {
+        return IFJ_ERR_INTERNAL;
+    }
+    
+    //initialization of hashtable
+    if ((FHTable = function_hashtable_init()) == NULL)
+    {
+        return IFJ_ERR_INTERNAL;
     }
 
     // initialization of structure for token data

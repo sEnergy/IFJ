@@ -1,20 +1,6 @@
-<?php
-$x=0;
-$a = 0;
-if(true)
-{
-    if($x === 1)
-    {
-        $a=2;
-    }
-    elseif($x >= 2)
-    {
-        $a="2";
-    }
-    else
-    {
-        $a = "4";
-    }
-    $a = 3*-3;
-}
-$x=put_string($a,"\n");
+/* Komentar */<?php
+// Program 4: Syntakticka chyba (cokoliv pred <?php)
+// internalError = 2
+
+$a = 6;
+$y = put_string($a);
