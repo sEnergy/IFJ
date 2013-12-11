@@ -461,14 +461,10 @@ int get_string(changeable_tokenPtr token)
 int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr token)
 {
     int argc = 0;
-    if(token->data == NULL) 
-    {
-        *arg_number = argc;
-        return 0;
-    }
-
+   
     while(token->data != NULL)
     {
+
         int i = 0;
         int j = 0;
         int len = strlen(token->data);
@@ -515,7 +511,10 @@ int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr 
                 {
                     free(tmp_data);
                     char *out_data = my_item->value;
-                    printf("%s",out_data);
+                    if( strcmp(out_data,"null") != 0)
+                    {
+                        printf("%s",out_data);
+                    }
                 }
             } 
             else

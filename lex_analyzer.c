@@ -203,6 +203,11 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                         {
                             case '$':
                               {
+                                if (write_c(buffer,'\\') == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+                                
                                 if (write_c(buffer,'$') == IFJ_ERR_INTERNAL)
                                 {
                                     return IFJ_ERR_INTERNAL;
