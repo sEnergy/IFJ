@@ -53,6 +53,7 @@ int write_c(BUFFER_STRUCT buffer, char c)
     buffer->data[buffer->position] = c;
     buffer->position++;
     buffer->data[buffer->position] = '\0';
+    buffer->position++;
     return 0;
 }
 
