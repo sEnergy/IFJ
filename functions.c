@@ -278,7 +278,7 @@ int doubleval(changeable_tokenPtr token)
                         {
                             e_num = (tmp_data[i] - '0') + 10.0 * e_num;
                             i++;
-                            if (!isdigit(tmp_data[i+1])) count = false;
+                            if (!isdigit(tmp_data[i])) count = false;
                         }
                         
                         if(e_sign == 1)

@@ -1,0 +1,31 @@
+<?php
+
+// odhalenie chyby č.3
+
+function power($cislo) {
+	$cislo = $cislo * $cislo * 1.05;
+	$x = put_string($cislo, "\n");
+
+	if ($cislo <= 26.26) {
+		$cislo = power($cislo);
+	}
+	else {
+		return $cislo;
+	}
+
+	return $cislo;
+}
+
+function power($cislo) {
+	$cislo = $cislo * $cislo * 1.05;
+	$x = put_string($cislo, "\n");
+
+	if ($cislo <= 26.26) {
+		$cislo = power($cislo);
+	}
+	else {
+		return $cislo;
+	}
+
+	return $cislo;
+}

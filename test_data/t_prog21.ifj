@@ -1,0 +1,22 @@
+<?php
+/* Program 3: Prace s retezci a vestavenymi funkcemi */
+$i = 0;
+$ii = 0;
+$iii = 0;
+$a = 0;
+while($i<15){
+	$a = $a + 1;
+	$i = $i + 1;
+	$x = put_string($a, "\n");
+	while ($ii < 10) {
+		$a = $a + 1;
+		$ii = $ii+ 1;
+		$x = put_string($a, "\n");
+		while ($iii < 5) {
+			$a = $a + 1;
+			$iii = $iii + 1;
+			$x = put_string($a, "\n");
+		}
+	}
+}
+$x = put_string($a);
