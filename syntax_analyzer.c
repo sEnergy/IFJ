@@ -331,6 +331,10 @@ int buffer_init(BUFFER_STRUCT buffer)
         buffer->data[0] = '\0';
         buffer->max_length = IFJ_SYNTAX_DEF_BUFF_SIZE;
         buffer->position = 0;
+        for (unsigned i = buffer->position; i<buffer->max_length; ++i)
+        {
+			buffer->data[i] = '\0';
+		}
     }
     return 0;
 }

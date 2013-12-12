@@ -49,11 +49,14 @@ int write_c(BUFFER_STRUCT buffer, char c)
 
         buffer->data = new_ptr;
         buffer->max_length *= 2;
+        for (unsigned i = buffer->position; i<buffer->max_length; ++i)
+        {
+			buffer->data[i] = '\0';
+		}
     }
     buffer->data[buffer->position] = c;
     buffer->position++;
     buffer->data[buffer->position] = '\0';
-    buffer->position++;
     return 0;
 }
 
