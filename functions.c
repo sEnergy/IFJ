@@ -470,7 +470,6 @@ int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr 
         {
             while(len > i)
             {
-                
                 if(token->data[i] == '\\') 
                 {
                     i++;
@@ -484,7 +483,7 @@ int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr 
                     }
                     else
                     {
-                        printf("\\");
+                        printf("\\%c", token->data[i]);
                     }
                 }    
                 else if(token->data[i] == '$')    
