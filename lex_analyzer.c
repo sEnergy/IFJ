@@ -228,7 +228,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
 
                                 c = '"';
                               } break;
-                              case 't':
+                            case 't':
                               {
                                 if (write_c(buffer,'\t') == IFJ_ERR_INTERNAL)
                                 {
@@ -237,18 +237,9 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
 
                                 c = '"';
                               } break;
-                              case '"':
+                            case '"':
                               {
                                 if (write_c(buffer,'\"') == IFJ_ERR_INTERNAL)
-                                {
-                                    return IFJ_ERR_INTERNAL;
-                                }
-
-                                c = '"';
-                              } break;
-                              case '\'':
-                              {
-                                if (write_c(buffer,'\'') == IFJ_ERR_INTERNAL)
                                 {
                                     return IFJ_ERR_INTERNAL;
                                 }
@@ -330,6 +321,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                     //end of string
                     case '"':
                     {
+                        //printf("--> %s\n",&buffer->data[token->content]);
                         token->id = IFJ_T_STRING;
                         buffer_next_token(buffer);
                         return 0;
