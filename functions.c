@@ -361,6 +361,10 @@ int strval(changeable_tokenPtr token)
     else if ( token->id == IFJ_T_DOUBLE )
     {
         token->id = IFJ_T_STRING;
+        double tmp_number = atof(token->data);
+        char *tmp_data = token->data;
+        sprintf(tmp_data,"%g",tmp_number);
+        error_code = changeable_token_update(token, tmp_data);
         return error_code;
     }
     // string
