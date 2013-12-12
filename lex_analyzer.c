@@ -246,6 +246,15 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
 
                                 c = '"';
                               } break;
+                              case '\'':
+                              {
+                                if (write_c(buffer,'\'') == IFJ_ERR_INTERNAL)
+                                {
+                                    return IFJ_ERR_INTERNAL;
+                                }
+
+                                c = '"';
+                              } break;
                             case 'x':
                             {
                                 //read next two characters and convert it into long

@@ -478,6 +478,10 @@ int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr 
                     {
                         printf("$");
                     }
+                    else
+                    {
+                        printf("\\");
+                    }
                 }    
                 else if(token->data[i] == '$')    
                 {       
