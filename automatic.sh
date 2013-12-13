@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Autor: Karel Brezina
 # automaticke spousteni a kontrolovani vystupu
 
 Red='\e[0;31m';
@@ -151,9 +152,6 @@ echo -e -n "${Res}"
 echo "================================"
 
 #END
-################################################################
-#######				 sem pridavajte nove testy 			########
-################################################################
 
 name="test_data/t_extreme"
 tname="test_data/outputs/out_extreme"
@@ -162,7 +160,7 @@ echo "################################"
 echo "###  Testuji extremni testy  ###"
 echo "################################"
 
-for i in 1 2 3 4
+for i in 1 2 3 4 5 6 7
 do
 	./ifj_070 ${name}$i".ifj" < test_data/stdin_file > ${cname}$i 2>tmp2
 	myreturn=$?;

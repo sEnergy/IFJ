@@ -3,6 +3,7 @@
  * Project name:        IFJ - Team project
  * Filename:            functions.c
  * Author:              Matúš Turic
+ *                      Attila Večerek
  * Encoding:            UTF-8
  *
  * Description:         Source file of built-in functions for team project
@@ -461,7 +462,86 @@ int get_string(changeable_tokenPtr token)
 /* *****************************************************************************
 *                                   PUT_STRING
 *******************************************************************************/
-
+int expand(changeable_tokenPtr token, hashtable_item** hashtable, int len, int i, int j)
+{
+    while(len > i)
+    {
+        j = 0;
+        if(token->data[i] == '\\') 
+        {
+            i++;
+            if(len > i && token->data[i] == '$')
+            {
+                printf("$");
+            }
+            else if(len > i && token->data[i] == '\\')
+            {
+                printf("\\\\");
+            }
+            else
+            {
+                printf("\\%c", token->data[i]);
+            }
+            i++;
+        }
+        if (token->data[i] == '$')
+        {
+            char *tmp_data = malloc(sizeof(char)*(len));
+            if (tmp_data == NULL)
+            {
+                return IFJ_ERR_INTERNAL;
+            }
+            tmp_data[j] = token->data[i];
+            i++;
+            j++;
+            while((len > i) && (isalpha(token->data[i]) || token->data[i] == '_'))
+            {
+                tmp_data[j] = token->data[i];
+                if(len > i + 1 && !isalpha(token->data[i + 1]) && token->data[i + 1] != '_')
+                {
+                    j++;
+                    break;
+                }
+                j++;
+                i++;
+            }
+            tmp_data[j] = '\0';
+            hashtable_item* my_item = search_hashtable (hashtable, tmp_data);
+            free(tmp_data);
+                            
+            if (my_item == NULL)
+            {
+                printf("HERE\n");
+                return IFJ_ERR_UNDECLARED_VARIABLE;
+            }
+            else if( strcmp(my_item->value,"null") != 0)
+            {
+                changeable_tokenPtr expanded = malloc(sizeof(struct changeable_token));
+                if (expanded == NULL)
+                {
+                    return IFJ_ERR_INTERNAL;
+                }
+                expanded->data = my_item->value;
+                int err = expand(expanded, hashtable, strlen(my_item->value), 0, 0);
+                if (err == IFJ_ERR_INTERNAL)
+                {
+                    return IFJ_ERR_INTERNAL;
+                }
+                if (err == IFJ_ERR_UNDECLARED_VARIABLE)
+                {
+                    return IFJ_ERR_UNDECLARED_VARIABLE;
+                }
+                free(expanded);
+            }
+        } 
+        else
+        {
+            printf("%c",token->data[i]);
+        }
+        i++;
+    }
+    return 0;
+}
 int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr token)
 {
     int argc = 0;
@@ -472,67 +552,14 @@ int put_string(int* arg_number, hashtable_item** hashtable, changeable_tokenPtr 
         int len = strlen(token->data);
         if(strcmp(token->data, "null") != 0)
         {
-            while(len > i)
+            int err = expand(token, hashtable, len, i, j);
+            if (err == IFJ_ERR_INTERNAL)
             {
-                if(token->data[i] == '\\') 
-                {
-                    i++;
-                    if(len > i && token->data[i] == '$')
-                    {
-                        printf("$");
-                    }
-                    else if(len > i && token->data[i] == '\\')
-                    {
-                        printf("\\\\");
-                    }
-                    else
-                    {
-                        printf("\\%c", token->data[i]);
-                    }
-                }    
-                else if(token->data[i] == '$')    
-                {       
-                    char *tmp_data = malloc(sizeof(char)*(len));
-                    if (tmp_data == NULL)
-                    {
-                        return IFJ_ERR_INTERNAL;
-                    }
-                    tmp_data[j] = token->data[i];
-                    i++;
-                    j++;
-                    while((len > i) && (isalpha(token->data[i]) || token->data[i] == '_'))
-                    {
-                        tmp_data[j] = token->data[i];
-                        if(len > i + 1 && !isalpha(token->data[i + 1]) && token->data[i + 1] != '_')
-                        {
-                            j++;
-                            break;
-                        }
-                        j++;
-                        i++;
-                    }
-                    tmp_data[j] = '\0';
-                    hashtable_item* my_item = search_hashtable (hashtable, tmp_data);
-                    
-                    if (my_item == NULL)
-                    {
-                        return IFJ_ERR_UNDECLARED_VARIABLE;
-                    }
-                    else
-                    {
-                        free(tmp_data);
-                        char *out_data = my_item->value;
-                        if( strcmp(out_data,"null") != 0)
-                        {
-                            printf("%s",out_data);
-                        }
-                    }
-                } 
-                else
-                {
-                    printf("%c",token->data[i]);
-                }
-                i++;  
+                return IFJ_ERR_INTERNAL;
+            }
+            else if (err == IFJ_ERR_UNDECLARED_VARIABLE)
+            {
+                return IFJ_ERR_UNDECLARED_VARIABLE;
             }
         }
         argc++;

@@ -1,0 +1,9 @@
+<?php
+
+// Testovani strval a konkatenace
+
+$and = 87;
+$b = "och $and och";
+$c = "jaj $b jaj";
+
+$x = put_string($c, "\n");

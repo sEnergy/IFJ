@@ -1,0 +1,8 @@
+<?php
+
+// Testovani strval a konkatenace
+
+$and = 87;
+$c = "$and - $and";
+
+$x = put_string($c, "\n");
