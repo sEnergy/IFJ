@@ -199,8 +199,8 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
     TokenPtr end;
     List_itemPtr LCterm;
     int code;
-    int x;
-    int y;
+    int row;
+    int col;
     
     
     S_init(&stack);
@@ -223,7 +223,7 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
         { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 3 , 0, 1 }, // (
         { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 2 , 2, 1 }, // )
         { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 4, 1 }, // $
-        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 0 , 2, 1 }, // U-
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // U-
     };
     if((start = new_token(garbages)) == NULL)
     {
@@ -269,14 +269,23 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
                         (is_operator(list->active->LPtr->content) 
                         || list->active->LPtr->content->id == IFJ_T_LB))
         {
-            y = 14;
+            col = 14;
         }
         else
         {
-            y = list->active->content->id-2;
+            col = list->active->content->id - 2;
         }
-        x = LCterm->content->id-2;
-        switch (table[x][y])
+        if (LCterm->content->id == IFJ_T_MIN &&
+                        (is_operator(LCterm->LPtr->content) 
+                        || LCterm->content->id == IFJ_T_LB))
+        {
+            row = 14;
+        }
+        else 
+        {
+            row = LCterm->content->id - 2;
+        }
+        switch (table[row][col])
         {
             
             case 4:

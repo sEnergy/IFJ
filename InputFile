@@ -2,7 +2,7 @@
 
 // Testovani find_string
 
-$a = "\\\\\\\\";
+$a =(;
 
 $x = put_string($a, "\n");
 

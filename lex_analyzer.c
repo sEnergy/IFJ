@@ -321,7 +321,7 @@ int lex_analyzer (FILE *input, TokenPtr token, BUFFER_STRUCT buffer)
                     //end of string
                     case '"':
                     {
-                        //printf("--> %s\n",&buffer->data[token->content]);
+//                        printf("--> %s\n",&buffer->data[token->content]);
                         token->id = IFJ_T_STRING;
                         buffer_next_token(buffer);
                         return 0;
