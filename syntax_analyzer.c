@@ -152,6 +152,7 @@ int work(Stack_t* stack, TokenList* list, BUFFER_STRUCT big_string, Stack_t* gar
             }
         zero->id = IFJ_T_INT;
         buffer_next_token(big_string);
+        zero->content = big_string->position;
         if ((code = write_c(big_string, '0')) != 0)
         {
             return code;
@@ -221,7 +222,7 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
         { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2, 1 }, // ===
         { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 2 , 2 , 1 , 2 , 2, 1 }, // !==
         { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 3 , 0, 1 }, // (
-        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 2 , 2, 1 }, // )
+        { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 0 , 2 , 2, 2 }, // )
         { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 4, 1 }, // $
         { 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2, 1 }, // U-
     };
@@ -266,8 +267,8 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
  * Detecting unary minus and set position for lookup in table manualy
  */
         if (list->active->LPtr != NULL && list->active->content->id == IFJ_T_MIN &&
-                        (is_operator(list->active->LPtr->content) 
-                        || list->active->LPtr->content->id == IFJ_T_LB))
+                        !list->active->LPtr->is_expression
+                        && list->active->LPtr->content->id != IFJ_T_RB)
         {
             col = 14;
         }
@@ -276,8 +277,8 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
             col = list->active->content->id - 2;
         }
         if (LCterm->content->id == IFJ_T_MIN &&
-                        (is_operator(LCterm->LPtr->content) 
-                        || LCterm->content->id == IFJ_T_LB))
+                        !LCterm->LPtr->is_expression 
+                        && LCterm->content->id != IFJ_T_RB)
         {
             row = 14;
         }
@@ -313,6 +314,8 @@ int PSA(TokenList* list, BUFFER_STRUCT big_string, Stack_t* garbages)
                 break;
         }
     }
+
+
 // Structure should have one exact formant at the end.
     if (!S_empty(&stack) || 
         !(list->first->content->id == IFJ_T_MOD &&
