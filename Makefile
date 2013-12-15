@@ -65,6 +65,6 @@ clndep:
 
 # pack
 pack:
-	zip -r $(ARCHIVE_NAME).zip *.c *.h Makefile
+	zip -r $(ARCHIVE_NAME).zip *.c *.h Makefile rozsireni rozdeleni
 
 ### End of file Makefile ###
